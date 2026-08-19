@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 // Refresca el token de sesión en cada request (sección 2.1 del API spec:
 // @supabase/ssr con cookies httpOnly). Sin esto, las sesiones expiran
 // silenciosamente a mitad de turno.
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

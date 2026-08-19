@@ -13,7 +13,7 @@ export type Role = 'dueno' | 'admin' | 'responsable_restaurante' | 'validador_co
  *   const { user, role } = auth;
  */
 export async function requireRole(allowedRoles?: Role[]) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
     error,

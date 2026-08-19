@@ -12,7 +12,7 @@ Stack: Next.js (App Router) + Supabase (Postgres + Auth + Storage) + Vercel + Gi
 - **`lib/supabase/`** — clientes server, browser y service_role.
 - **`lib/api/`** — helpers de formato de respuesta (`ok`, `okPaginated`, `apiError`) y el
   guard de autenticación/rol (`requireRole`) que usa todo Route Handler.
-- **`middleware.ts`** — refresco de sesión en cada request.
+- **`proxy.ts`** — refresco de sesión en cada request (convención `proxy` de Next.js 16; reemplaza al antiguo `middleware.ts`).
 - **`app/api/restaurantes/`** — patrón CRUD simple completo (lista + crear).
 - **`app/api/cortes/`** — patrón completo del recurso más complejo: crear, editar,
   enviar a validación, validar (con la regla de comentario obligatorio en diferencias),

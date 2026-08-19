@@ -1,0 +1,29 @@
+# dependencies
+/node_modules
+
+# next.js build output
+/.next/
+/out/
+
+# production
+/build
+
+# env files (never commit secrets)
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# supabase generated types (regenerate via `npm run db:types`)
+lib/supabase/database.types.ts
+
+# supabase local dev
+supabase/.branches
+supabase/.temp
+
+# misc
+.DS_Store
+*.log
+npm-debug.log*

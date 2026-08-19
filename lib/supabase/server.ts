@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 /**
@@ -6,8 +7,8 @@ import { cookies } from 'next/headers';
  * Usa la anon key + RLS — respeta los permisos del usuario autenticado
  * a través de las cookies httpOnly de sesión.
  */
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,7 +40,6 @@ export function createClient() {
  * directo del cliente sin haber verificado antes el rol del usuario.
  */
 export function createServiceRoleClient() {
-  const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
