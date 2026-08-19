@@ -1,3 +1,5 @@
+import './globals.css';
+
 export const metadata = {
   title: 'ERP Restaurantes',
   description: 'Gestión financiera multi-restaurante',
