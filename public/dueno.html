@@ -1,0 +1,2580 @@
+<!DOCTYPE html>
+<html lang="es-MX" data-modo="oscuro" data-texto="0" data-contraste="0">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090D13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Centro de Control · La Brasileña</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ▼▼ BLOQUE: TOKENS ▼▼ */
+/* ══════════════════════════════════════════════════════════════════════
+   ══ TOKENS ══
+   ══════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0B0F15; --sidebar:#070A0F; --card:#151B25; --card-2:#1D2532;
+  --line:#242D3B; --line-2:#33405222;
+  --ink:#EAEFF6; --ink-2:#9CA9BA; --ink-3:#65728A;
+  --acento:#2CC0D8; --acento-dim:rgba(44,192,216,.13);
+  --sano:#34D964;  --sano-dim:rgba(52,217,100,.16);
+  --alarma:#FFA228;--alarma-dim:rgba(255,162,40,.16);
+  --critico:#FF4438;--critico-dim:rgba(255,68,56,.16);
+  --serie-1:#34D964; --serie-2:#2CC0D8; --serie-3:#FFA228; --serie-4:#7C8AA5;
+  --fase2:#7B83BE; --fase2-dim:rgba(123,131,190,.13); --fase2-line:rgba(123,131,190,.32);
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --r:12px; --r-sm:7px; --sidebar-w:248px; --nav-h:60px;
+  --ease:cubic-bezier(.16,.84,.34,1);
+  --fast:140ms; --mid:300ms; --slow:520ms; --xslow:900ms;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(900px 520px at 78% -8%, rgba(44,192,216,.055), transparent 62%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;
+  min-height:100dvh;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;text-align:left}
+:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.lbl{font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* — Entrada escalonada: la pantalla se arma, no aparece de golpe — */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.rise{animation:rise var(--slow) var(--ease) both}
+
+/* ▼▼ BLOQUE: SIDEBAR ▼▼ */
+/* ══════════════ SIDEBAR ══════════════ */
+.sidebar{
+  position:fixed;inset:0 auto 0 0;width:var(--sidebar-w);z-index:80;
+  background:var(--sidebar);display:flex;flex-direction:column;
+  border-right:1px solid var(--line);
+  transform:translateX(-100%);transition:transform var(--mid) var(--ease);
+  padding-top:env(safe-area-inset-top);
+}
+.sidebar.open{transform:none}
+.brand{padding:18px 18px 16px;border-bottom:1px solid var(--line)}
+.brand-row{display:flex;align-items:center;gap:11px}
+.brand-n{font-size:15.5px;font-weight:600;letter-spacing:-.01em;line-height:1.1}
+.brand-s{font-size:8.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--alarma);margin-top:2px}
+.brand-e{margin-top:14px;font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.side-nav{flex:1;padding:10px 0;overflow-y:auto}
+.side-item{
+  width:100%;display:flex;align-items:center;gap:11px;padding:0 17px;min-height:42px;
+  color:var(--ink-2);font-size:13.5px;font-weight:500;
+  border-left:3px solid transparent;
+  transition:background var(--fast) var(--ease),color var(--fast) var(--ease);
+}
+.side-item[data-f2="1"]{color:var(--ink-3)}
+.side-item[aria-current="page"]{
+  background:linear-gradient(90deg,var(--acento-dim),transparent);
+  color:var(--ink);border-left-color:var(--acento);font-weight:600;
+}
+.side-item svg{flex:none;opacity:.85}
+.tag-f2{margin-left:auto;font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--fase2);border:1px solid var(--fase2-line);background:var(--fase2-dim);padding:2px 5px;border-radius:3px}
+.side-user{display:flex;align-items:center;gap:11px;padding:13px 17px calc(13px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.avatar{width:34px;height:34px;border-radius:50%;flex:none;background:var(--card-2);border:1px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:600}
+.su-n{font-size:13.5px;font-weight:600;line-height:1.2}
+.su-r{font-size:11px;color:var(--ink-3)}
+.scrim{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity var(--mid) var(--ease)}
+.scrim.on{opacity:1;pointer-events:auto}
+
+/* ▼▼ BLOQUE: TOPBAR ▼▼ */
+/* ══════════════ TOPBAR ══════════════ */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(11,15,21,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.tb-in{max-width:1320px;margin-inline:auto;padding:13px 16px}
+.tb-row{display:flex;align-items:center;gap:12px}
+.icon-btn{width:36px;height:36px;border-radius:var(--r-sm);flex:none;display:grid;place-items:center;color:var(--ink-2);transition:background var(--fast) var(--ease)}
+.icon-btn:active{transform:scale(.94)}
+.tb-saludo{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.tb-ctx{font-size:12px;color:var(--ink-3);margin-top:2px}
+.tb-sp{flex:1}
+.badge-mock{display:inline-flex;align-items:center;gap:6px;flex:none;padding:5px 10px;border-radius:100px;background:var(--alarma-dim);border:1px solid rgba(255,162,40,.3);font-size:10.5px;font-weight:600;color:var(--alarma);white-space:nowrap}
+.badge-mock i{width:5px;height:5px;border-radius:50%;background:var(--alarma);box-shadow:0 0 8px var(--alarma);animation:pulse 2.2s var(--ease) infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.ctrls{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:2px;position:relative}
+.seg button{min-height:31px;padding:0 15px;border-radius:5px;font-size:12.5px;font-weight:500;color:var(--ink-3);transition:color var(--fast) var(--ease);position:relative;z-index:2}
+.seg button[aria-pressed="true"]{color:var(--ink);font-weight:600}
+.seg-ind{position:absolute;top:2px;bottom:2px;border-radius:5px;background:var(--card-2);border:1px solid var(--line);transition:left var(--mid) var(--ease),width var(--mid) var(--ease);z-index:1}
+.suc-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.suc-row::-webkit-scrollbar{display:none}
+.suc{display:inline-flex;align-items:center;gap:7px;flex:none;min-height:32px;padding:0 11px;border-radius:var(--r-sm);background:var(--card);border:1px solid var(--line);font-size:12.5px;font-weight:500;color:var(--ink-3);transition:background var(--fast) var(--ease),color var(--fast) var(--ease)}
+.suc[aria-pressed="true"]{background:var(--card-2);color:var(--ink);border-color:var(--line)}
+.suc:active{transform:scale(.97)}
+.lamp{width:7px;height:7px;border-radius:50%;flex:none}
+.lamp[data-e="sano"]{background:var(--sano);box-shadow:0 0 7px var(--sano)}
+.lamp[data-e="alarma"]{background:var(--alarma);box-shadow:0 0 7px var(--alarma)}
+.lamp[data-e="critico"]{background:var(--critico);box-shadow:0 0 7px var(--critico)}
+.lamp[data-e="off"]{background:var(--fase2)}
+
+/* ▼▼ BLOQUE: CANVAS ▼▼ */
+/* ══════════════ CANVAS ══════════════ */
+.wrap{max-width:1320px;margin-inline:auto;padding:16px 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 26px)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);grid-column:span 12;position:relative;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.card-t{font-size:13.5px;font-weight:600}
+.card-x{font-size:12px;color:var(--ink-3)}
+.card-b{padding:16px}
+.leyenda{display:flex;gap:14px;flex-wrap:wrap}
+.leg{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2)}
+.leg i{width:8px;height:8px;border-radius:2px;flex:none}
+
+/* ▼▼ BLOQUE: KPIS ▼▼ */
+/* — A · KPIs — */
+.kpis{grid-column:span 12;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--kc,var(--serie-4));opacity:.9}
+.kpi::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 0% 0%,var(--kg,transparent),transparent 62%);pointer-events:none}
+.kpi[data-t="balance"]{--kc:var(--acento);--kg:rgba(44,192,216,.10)}
+.kpi[data-t="entra"]{--kc:var(--sano);--kg:rgba(52,217,100,.10)}
+.kpi[data-t="sale"]{--kc:var(--critico);--kg:rgba(255,68,56,.09)}
+.kpi[data-t="tickets"]{--kc:var(--serie-4);--kg:rgba(124,138,165,.09)}
+.kpi-c{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:23px;font-weight:600;letter-spacing:-.035em;margin-top:7px;line-height:1.1;position:relative}
+.kpi-d{margin-top:8px;position:relative}
+.delta{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-3)}
+.delta b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.delta[data-dir="up"] b,.delta[data-dir="up"] svg{color:var(--sano)}
+.delta[data-dir="down"] b,.delta[data-dir="down"] svg{color:var(--critico)}
+
+/* ▼▼ BLOQUE: ALERTAS-BANDA ▼▼ */
+/* — B · Alertas — */
+.alertas{grid-column:span 12;display:grid;gap:10px;grid-template-columns:1fr}
+.al{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);border-left:3px solid var(--line);transition:transform var(--fast) var(--ease),border-color var(--fast) var(--ease)}
+.al[data-e="critico"]{border-left-color:var(--critico);background:linear-gradient(100deg,var(--critico-dim),transparent 46%),var(--card)}
+.al[data-e="alarma"]{border-left-color:var(--alarma);background:linear-gradient(100deg,var(--alarma-dim),transparent 46%),var(--card)}
+.al[data-e="sano"]{border-left-color:var(--sano);background:linear-gradient(100deg,var(--sano-dim),transparent 46%),var(--card)}
+.al-ic{flex:none;margin-top:1px}
+.al[data-e="critico"] .al-ic{color:var(--critico)}
+.al[data-e="alarma"] .al-ic{color:var(--alarma)}
+.al[data-e="sano"] .al-ic{color:var(--sano)}
+.al-t{font-size:12.5px;font-weight:600;line-height:1.3}
+.al-d{font-size:11.5px;color:var(--ink-2);margin-top:3px}
+.al-d .num{color:var(--ink);font-weight:600}
+.al-ch{margin-left:auto;color:var(--ink-3);flex:none;align-self:center}
+
+/* ▼▼ BLOQUE: HERO-GAUGE ▼▼ */
+/* — C · Hero + gauge con resplandor — */
+.hero{grid-column:span 12}
+.hero-b{padding:20px 16px 18px;position:relative}
+.hero-glow{position:absolute;inset:0;pointer-events:none;opacity:.6;
+  background:radial-gradient(70% 55% at 50% 118%,var(--hg,transparent),transparent 70%);
+  transition:background var(--mid) var(--ease)}
+.hero[data-e="sano"]{--hg:rgba(52,217,100,.17)}
+.hero[data-e="alarma"]{--hg:rgba(255,162,40,.17)}
+.hero[data-e="critico"]{--hg:rgba(255,68,56,.19)}
+.hero-c{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:clamp(36px,10vw,50px);font-weight:600;letter-spacing:-.045em;line-height:1;margin-top:8px;position:relative}
+.hero-m{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:13px;position:relative}
+.estado{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:var(--r-sm);font-size:12px;font-weight:600;border:1px solid}
+.estado[data-e="sano"]{color:var(--sano);background:var(--sano-dim);border-color:rgba(52,217,100,.34);box-shadow:0 0 18px rgba(52,217,100,.14)}
+.estado[data-e="alarma"]{color:var(--alarma);background:var(--alarma-dim);border-color:rgba(255,162,40,.34);box-shadow:0 0 18px rgba(255,162,40,.14)}
+.estado[data-e="critico"]{color:var(--critico);background:var(--critico-dim);border-color:rgba(255,68,56,.34);box-shadow:0 0 18px rgba(255,68,56,.16)}
+.gauge-wrap{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);text-align:center;position:relative}
+.gauge{width:100%;max-width:280px;margin-inline:auto;display:block;overflow:visible}
+.g-bg{fill:none;stroke:var(--line);stroke-width:15;stroke-linecap:round}
+.g-fill{fill:none;stroke-width:15;stroke-linecap:round;
+  transition:stroke-dashoffset var(--xslow) var(--ease),stroke var(--mid) var(--ease)}
+.g-pct{font-family:var(--mono);font-size:32px;font-weight:700;letter-spacing:-.035em;fill:var(--ink)}
+.g-cap{font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.14em;fill:var(--ink-3)}
+.g-end{font-family:var(--mono);font-size:10px;fill:var(--ink-3)}
+.gauge-leyenda{margin-top:4px;font-size:13px;color:var(--ink-2);line-height:1.5;position:relative}
+.gauge-leyenda b{color:var(--ink);font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.nota{margin-top:14px;font-size:11px;line-height:1.5;color:var(--ink-3);display:flex;gap:7px;align-items:flex-start;text-align:left;position:relative}
+.nota svg{flex:none;margin-top:1px}
+
+/* ▼▼ BLOQUE: FLUJO ▼▼ */
+/* — D · GRÁFICA DE FLUJO — */
+.flujo-svg{width:100%;height:190px;display:block;overflow:visible}
+.fx-grid{stroke:var(--line);stroke-width:1}
+.fx-lbl{font-family:var(--mono);font-size:9.5px;fill:var(--ink-3)}
+.fx-area{opacity:0;transition:opacity var(--slow) var(--ease) 320ms}
+.fx-line{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;
+  transition:stroke-dashoffset var(--xslow) var(--ease)}
+.fx-dot{opacity:0;transition:opacity var(--mid) var(--ease) 620ms}
+.on .fx-area,.on .fx-dot{opacity:1}
+.fx-area.a-in{opacity:0}
+.on .fx-area.a-in{opacity:.85}
+
+/* ▼▼ BLOQUE: BARRAS ▼▼ */
+/* — E · Barras gruesas de desglose (protagonistas, no filetes) — */
+.bars{display:flex;flex-direction:column;gap:11px;padding:16px}
+.bar-row{display:block}
+.bar-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.bar-n{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.bar-p{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.bar-track{height:30px;border-radius:6px;background:rgba(255,255,255,.035);overflow:hidden;position:relative}
+.bar-fill{
+  height:100%;width:0;border-radius:6px;
+  display:flex;align-items:center;justify-content:flex-end;padding-right:10px;
+  transition:width var(--xslow) var(--ease);
+  position:relative;overflow:hidden;
+}
+.bar-fill::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 55%);
+}
+.bar-v{
+  font-family:var(--mono);font-variant-numeric:tabular-nums;
+  font-size:12px;font-weight:700;color:#08121A;white-space:nowrap;position:relative;z-index:2;
+  opacity:0;transition:opacity var(--mid) var(--ease) 420ms;
+}
+.on .bar-v{opacity:1}
+.bar-v.fuera{color:var(--ink);position:absolute;right:auto;left:calc(var(--w,0%) + 10px)}
+
+/* ▼▼ BLOQUE: TENDENCIA ▼▼ */
+/* — F · Día por día — */
+.trend{display:flex;align-items:stretch;gap:2px;height:126px;position:relative}
+.tzero{position:absolute;left:0;right:0;height:1px;background:var(--line);top:var(--zero,60%)}
+.tcol{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;cursor:default}
+.tp{display:flex;align-items:flex-end;justify-content:center}
+.tn{display:flex;align-items:flex-start;justify-content:center}
+.tbar{width:100%;max-width:18px;border-radius:3px;height:0;transition:height var(--slow) var(--ease),background var(--fast) var(--ease)}
+.tbar-p{background:rgba(52,217,100,.38)}
+.tbar-n{background:rgba(255,68,56,.45)}
+.tcol[data-hoy="1"] .tbar-p{background:var(--sano);box-shadow:0 0 14px rgba(52,217,100,.4)}
+.tcol[data-hoy="1"] .tbar-n{background:var(--critico);box-shadow:0 0 14px rgba(255,68,56,.4)}
+.tax{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);
+  background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:6px 10px;white-space:nowrap;font-size:11px;pointer-events:none;
+  opacity:0;transition:opacity var(--fast) var(--ease),transform var(--fast) var(--ease);z-index:5;
+  box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.tip b{display:block;font-family:var(--mono);font-weight:600;margin-top:2px}
+
+/* — Banner — */
+.fase1{grid-column:span 12;display:flex;gap:11px;align-items:flex-start;background:var(--acento-dim);border:1px solid rgba(44,192,216,.24);border-left:3px solid var(--acento);border-radius:var(--r);padding:13px 15px}
+.fase1 svg{flex:none;margin-top:1px;color:var(--acento)}
+.f1-t{font-size:12.5px;font-weight:600}
+.f1-d{font-size:12px;color:var(--ink-2);line-height:1.5;margin-top:2px}
+.pie{grid-column:span 12;font-size:10.5px;color:var(--ink-3);text-align:center;line-height:1.6;padding:2px 0}
+
+
+/* ▼▼ BLOQUE: SEVERIDAD ▼▼ */
+/* ══════════════════════════════════════════════════════════════════════
+   ANIMACIONES POR SEVERIDAD
+   Sano respira · Vigilar parpadea · Crítico urge.
+   El movimiento comunica gravedad sin leer una palabra.
+   ══════════════════════════════════════════════════════════════════════ */
+@keyframes respira{0%,100%{box-shadow:0 0 0 0 rgba(52,217,100,.55)}70%{box-shadow:0 0 0 8px rgba(52,217,100,0)}}
+@keyframes parpadea{0%,100%{opacity:1}50%{opacity:.32}}
+@keyframes urge{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,68,56,.75);transform:scale(1)}
+  45%{box-shadow:0 0 0 9px rgba(255,68,56,0);transform:scale(1.18)}
+}
+@keyframes barrido{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
+.lamp[data-e="sano"]{animation:respira 3.4s var(--ease) infinite}
+.lamp[data-e="alarma"]{animation:parpadea 1.5s steps(1,end) infinite}
+.lamp[data-e="critico"]{animation:urge 1s var(--ease) infinite}
+.lamp[data-e="off"]{animation:none}
+
+/* El chip crítico se distingue en reposo, no solo su lámpara */
+.suc[data-e="critico"]{border-color:rgba(255,68,56,.42);background:linear-gradient(100deg,var(--critico-dim),var(--card) 62%)}
+.suc[data-e="alarma"]{border-color:rgba(255,162,40,.34)}
+.suc[data-e="critico"]::after{
+  content:"";position:absolute;inset:0;border-radius:var(--r-sm);pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,68,56,.18),transparent);
+  width:34%;animation:barrido 2.6s linear infinite;
+}
+.suc{position:relative;overflow:hidden}
+.suc-z{font-size:9.5px;color:var(--ink-3);margin-left:2px}
+
+/* Hero: la urgencia sube al elemento principal */
+.hero[data-e="critico"] .hero-c{animation:parpadea 2.4s var(--ease) infinite}
+.hero[data-e="critico"]{border-color:rgba(255,68,56,.34)}
+.hero[data-e="alarma"]{border-color:rgba(255,162,40,.26)}
+.estado[data-e="critico"]{animation:urge 1.8s var(--ease) infinite}
+
+/* ▼▼ BLOQUE: DRILL-CSS ▼▼ */
+/* ══════════════ TODO DATO ES TOCABLE ══════════════ */
+[data-drill]{cursor:pointer;position:relative;transition:transform var(--fast) var(--ease)}
+[data-drill]:active{transform:scale(.985)}
+.drill-hint{
+  position:absolute;top:9px;right:9px;width:15px;height:15px;border-radius:50%;
+  border:1px solid var(--line);color:var(--ink-3);
+  display:grid;place-items:center;font-size:9px;font-weight:700;
+  opacity:.5;transition:opacity var(--fast) var(--ease),color var(--fast) var(--ease);
+}
+[data-drill]:hover .drill-hint{opacity:1;color:var(--acento);border-color:var(--acento)}
+
+/* ══════════════ PANEL DE ORIGEN DEL DATO ══════════════ */
+.drill-scrim{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.62);
+  opacity:0;pointer-events:none;transition:opacity var(--mid) var(--ease);
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.drill-scrim.on{opacity:1;pointer-events:auto}
+.drill{
+  position:fixed;z-index:96;background:var(--card);border:1px solid var(--line);
+  left:0;right:0;bottom:0;border-radius:18px 18px 0 0;
+  max-height:86dvh;overflow-y:auto;
+  transform:translateY(102%);transition:transform var(--mid) var(--ease);
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -20px 60px rgba(0,0,0,.6);
+}
+.drill.on{transform:none}
+.drill-grip{width:38px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 4px}
+.drill-h{padding:12px 20px 14px;border-bottom:1px solid var(--line);position:relative}
+.drill-eyebrow{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.drill-t{font-size:19px;font-weight:600;letter-spacing:-.02em;margin-top:4px}
+.drill-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:30px;font-weight:600;letter-spacing:-.04em;margin-top:8px}
+.drill-x{position:absolute;top:12px;right:14px;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--ink-3)}
+.drill-sec{padding:16px 20px;border-bottom:1px solid var(--line)}
+.drill-sec:last-child{border-bottom:0}
+.drill-lbl{font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:9px}
+.drill-formula{
+  font-family:var(--mono);font-size:12.5px;color:var(--acento);
+  background:var(--acento-dim);border:1px solid rgba(44,192,216,.24);
+  border-radius:8px;padding:11px 13px;line-height:1.5;
+}
+.drill-paso{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--line)}
+.drill-paso:last-child{border-bottom:0}
+.drill-paso.total{border-top:1px solid var(--line);border-bottom:0;margin-top:4px;padding-top:12px}
+.drill-paso.total .dp-n{font-weight:600;color:var(--ink)}
+.drill-paso.total .dp-v{font-size:15px;font-weight:700}
+.dp-n{font-size:13px;color:var(--ink-2)}
+.dp-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:500}
+.dp-v.neg{color:var(--critico)}
+.drill-p{font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+.drill-fuente{display:flex;flex-direction:column;gap:7px}
+.drill-f{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+.drill-f svg{flex:none;color:var(--acento)}
+.drill-ojo{
+  display:flex;gap:10px;align-items:flex-start;
+  background:var(--alarma-dim);border:1px solid rgba(255,162,40,.24);
+  border-left:3px solid var(--alarma);border-radius:8px;padding:12px 13px;
+}
+.drill-ojo svg{flex:none;margin-top:1px;color:var(--alarma)}
+.drill-ojo p{font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+
+/* ▼▼ BLOQUE: COMPARATIVA ▼▼ */
+/* ══════════════ COMPARATIVA DE SUCURSALES (solo alcance Grupo) ══════════════ */
+.cmp{display:flex;flex-direction:column}
+.cmp-row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;
+  padding:12px 16px;border-bottom:1px solid var(--line);
+  transition:background var(--fast) var(--ease);
+}
+.cmp-row:last-child{border-bottom:0}
+.cmp-n{font-size:13px;font-weight:500}
+.cmp-z{font-size:10.5px;color:var(--ink-3)}
+.cmp-track{height:7px;border-radius:4px;background:rgba(255,255,255,.05);overflow:hidden}
+.cmp-fill{height:100%;width:0;border-radius:4px;transition:width var(--xslow) var(--ease)}
+.cmp-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;text-align:right;white-space:nowrap}
+
+
+
+/* ▼▼ BLOQUE: SECCIONES-CSS ▼▼ */
+.mono{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;
+  font-size:12px;font-weight:700;letter-spacing:-.02em;color:#fff;border:1px solid rgba(255,255,255,.18)}
+.mono.sm{width:26px;height:26px;border-radius:7px;font-size:10px}
+.mono[data-off="1"]{background:var(--fase2-dim)!important;color:var(--fase2);border-color:var(--fase2-line)}
+
+.mapa-caja{perspective:1000px;padding:20px 16px 8px;overflow:hidden}
+.mapa-lienzo{position:relative;width:100%;aspect-ratio:4/3;max-height:400px;
+  background:linear-gradient(160deg,var(--card-2),var(--bg));border:1px solid var(--line);border-radius:14px;
+  transform:rotateX(46deg) rotateZ(-6deg) scale(.93);transform-style:preserve-3d;
+  transition:transform var(--slow) var(--ease)}
+.mapa-caja[data-plano="1"] .mapa-lienzo{transform:none}
+.mapa-svg{position:absolute;inset:0;width:100%;height:100%}
+.mapa-zona{fill:var(--line)}
+.mapa-via{stroke:var(--line-2);stroke-width:2;fill:none}
+.pin{position:absolute;transform:translate(-50%,-100%) translateZ(var(--h,26px));transform-style:preserve-3d;cursor:pointer}
+.pin-tallo{position:absolute;left:50%;top:100%;width:2px;height:var(--h,26px);
+  background:linear-gradient(180deg,currentColor,transparent);transform:translateX(-50%) rotateX(-46deg);
+  transform-origin:top center;opacity:.6}
+.pin-cuerpo{display:flex;align-items:center;gap:7px;padding:5px 9px 5px 5px;border-radius:22px;
+  background:var(--card);border:1px solid var(--line);white-space:nowrap;box-shadow:0 10px 22px rgba(0,0,0,.4)}
+.pin[data-e="alarma"] .pin-cuerpo{border-color:rgba(255,162,40,.5)}
+.pin[data-e="critico"] .pin-cuerpo{border-color:rgba(255,68,56,.65)}
+.pin[data-e="off"]{--h:8px;opacity:.55}
+.pin-n{font-size:11px;font-weight:600}
+.pin:active .pin-cuerpo{transform:scale(.95)}
+.pin-halo{position:absolute;left:50%;top:100%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;pointer-events:none}
+.pin[data-e="sano"] .pin-halo{background:radial-gradient(circle,rgba(52,217,100,.5),transparent 70%);animation:respira 3.4s var(--ease) infinite}
+.pin[data-e="alarma"] .pin-halo{background:radial-gradient(circle,rgba(255,162,40,.55),transparent 70%);animation:parpadea 1.5s steps(1,end) infinite}
+.pin[data-e="critico"] .pin-halo{background:radial-gradient(circle,rgba(255,68,56,.7),transparent 70%);animation:urge 1s var(--ease) infinite}
+.mapa-ctrl{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 14px;gap:10px}
+.mapa-nota{font-size:10.5px;color:var(--ink-3);line-height:1.4}
+.mini-btn{padding:8px 13px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--card-2);
+  font-size:11.5px;font-weight:600;color:var(--ink-2);flex:none}
+
+.ficha{display:flex;flex-direction:column}
+.ficha-row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:13px 16px;cursor:pointer}
+.ficha-n{font-size:13.5px;font-weight:600}
+.ficha-z{font-size:11px;color:var(--ink-3);margin-top:2px}
+.ficha-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;text-align:right}
+.ficha-m{font-size:10.5px;color:var(--ink-3);text-align:right;margin-top:1px;font-family:var(--mono)}
+.enc{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--card-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.enc-n{font-size:12.5px;font-weight:500}
+.enc-r{font-size:10.5px;color:var(--ink-3)}
+.enc-acc{margin-left:auto;display:flex;gap:7px}
+.enc-btn{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;border:1px solid var(--line);background:var(--card);color:var(--ink-2)}
+.enc-btn.wa{color:var(--sano);border-color:rgba(52,217,100,.3)}
+
+.filtros{display:flex;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.filtros::-webkit-scrollbar{display:none}
+.filtro{padding:7px 13px;border-radius:100px;border:1px solid var(--line);background:var(--card-2);
+  font-size:12px;font-weight:500;color:var(--ink-3);flex:none;min-height:34px}
+.filtro[aria-pressed="true"]{background:var(--acento-dim);border-color:var(--acento);color:var(--acento);font-weight:600}
+.alista{display:flex;flex-direction:column}
+.aitem{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:flex-start;padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.aitem:last-child{border-bottom:0}
+.aitem-t{font-size:13px;font-weight:600;line-height:1.3}
+.aitem-d{font-size:11.5px;color:var(--ink-2);margin-top:3px}
+.aitem-s{font-size:10.5px;color:var(--ink-3);margin-top:6px;display:flex;align-items:center;gap:7px}
+.vacio{padding:48px 24px;text-align:center;color:var(--ink-3)}
+.vacio-t{font-size:15px;font-weight:600;color:var(--ink);margin-top:12px}
+.vacio-d{font-size:13px;margin-top:6px}
+
+.rs{display:flex;flex-direction:column;padding:4px 0}
+.rs-fila{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.rs-n{font-size:13.5px;color:var(--ink-2)}
+.rs-v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600}
+.rs-vered{display:flex;gap:11px;align-items:flex-start;padding:14px 16px;border-top:1px solid var(--line)}
+.rs-vered[data-e="sano"]{background:var(--sano-dim);color:var(--sano)}
+.rs-vered[data-e="alarma"]{background:var(--alarma-dim);color:var(--alarma)}
+.rs-vered[data-e="critico"]{background:var(--critico-dim);color:var(--critico)}
+.rs-vt{font-size:14px;font-weight:600}
+.rs-vd{font-size:12px;margin-top:3px;opacity:.85}
+.rs-pend{padding:14px 16px;border-top:1px solid var(--line)}
+.rs-p{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2);padding:6px 0}
+.rs-p svg{flex:none;color:var(--ink-3)}
+.rs-acc{display:flex;gap:9px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line)}
+.rep-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:var(--r-sm);
+  background:var(--sano);color:#04180B;font-size:13px;font-weight:700;min-height:44px;flex:1;justify-content:center}
+.rep-btn.sec{background:var(--card-2);color:var(--ink-2);border:1px solid var(--line);flex:0 0 auto}
+.rep-btn:active{transform:scale(.97)}
+@media print{
+  .topbar,.bnav,.sidebar,.scrim,.pv,.drill,.rs-acc,.fase1{display:none!important}
+  body{background:#fff;color:#000;padding:0}
+  .card{border:1px solid #ccc;box-shadow:none}
+}
+
+/* ── SIDEBAR: en móvil NO repite el bottom nav ──
+   Punto 5 auditado: la lista de secciones se oculta en móvil y el drawer
+   queda como panel de sucursales y ajustes. En escritorio, donde no hay
+   bottom nav, el sidebar sí navega. */
+.side-solo-esc{display:none}
+.side-solo-mov{display:block}
+@media (min-width:1024px){
+  .side-solo-esc{display:block}
+  .side-solo-mov{display:none}
+}
+.dw-lbl{font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);padding:14px 18px 7px}
+.dw-item{width:100%;display:flex;align-items:center;gap:11px;padding:11px 18px;min-height:46px;
+  color:var(--ink-2);font-size:13.5px;transition:background var(--fast) var(--ease)}
+.dw-item[aria-pressed="true"]{background:var(--acento-dim);color:var(--ink)}
+.dw-item:active{background:var(--card-2)}
+.dw-v{margin-left:auto;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:600}
+.dw-z{font-size:10.5px;color:var(--ink-3)}
+/* ▲▲ FIN: SECCIONES-CSS ▲▲ */
+
+/* ▼▼ BLOQUE: MODO-VISTA ▼▼
+   Día / Noche + control de tamaño de letra y contraste.
+   Los tokens cambian de valor; ningún componente sabe en qué modo está.
+
+   ITERACIONES DE CALIBRACIÓN (5):
+     1) Claro con fondo #FFF puro → deslumbra en exterior. Bajado a #F2F5F9.
+     2) Texto secundario #8A97A6 sobre claro → 3.1:1, reprobado. A #4C596B.
+     3) Verde #34C759 sobre blanco → 2.2:1, ilegible. A #1E7A38 en claro.
+     4) Noche: blanco #FFF sobre #0B0F15 vibra de noche. A hueso #E8EDF4.
+     5) Ámbar #FFA228 sobre claro → 2.0:1. A #96540A en claro.
+   AUDITORÍA (3 pasadas de contraste WCAG):
+     1ª → noche: terciario #525E6E daba 2.87:1. Subido a #5B6879.
+     2ª → los tres modos pasan AA en los 8 pares medidos.
+     3ª → verificado también contra --bg además de --card.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* — DÍA: alto contraste, pensado para sol directo — */
+html[data-modo="dia"]{
+  --bg:#F2F5F9; --sidebar:#0E141C; --card:#FFFFFF; --card-2:#E9EEF5;
+  --line:#D5DEE8; --line-2:#B4C1D0;
+  --ink:#0B1119; --ink-2:#3D4A5C; --ink-3:#5F6D80;
+  --acento:#0A6E80; --acento-dim:rgba(10,110,128,.10);
+  --sano:#1E7A38;   --sano-dim:rgba(30,122,56,.12);
+  --alarma:#96540A; --alarma-dim:rgba(150,84,10,.12);
+  --critico:#B31E14;--critico-dim:rgba(179,30,20,.10);
+  --serie-1:#1E7A38; --serie-2:#0A6E80; --serie-3:#96540A; --serie-4:#5A6879;
+  --fase2:#454E86; --fase2-dim:rgba(69,78,134,.10); --fase2-line:rgba(69,78,134,.32);
+}
+html[data-modo="dia"] body{background:var(--bg)}
+html[data-modo="dia"] .card,html[data-modo="dia"] .kpi{box-shadow:0 1px 2px rgba(11,17,25,.06)}
+html[data-modo="dia"] .bar-track,html[data-modo="dia"] .cmp-track{background:rgba(0,0,0,.06)}
+html[data-modo="dia"] .bar-v{color:#fff}
+html[data-modo="dia"] .lamp{box-shadow:none!important}
+html[data-modo="dia"] .estado{box-shadow:none}
+html[data-modo="dia"] .tbar-p{background:rgba(30,122,56,.45)}
+html[data-modo="dia"] .tbar-n{background:rgba(179,30,20,.45)}
+/* El chrome oscuro se conserva: es la firma del producto. */
+html[data-modo="dia"] .topbar{background:rgba(14,20,28,.96)}
+html[data-modo="dia"] .topbar .tb-saludo,html[data-modo="dia"] .topbar .icon-btn{color:#F2F5F9}
+html[data-modo="dia"] .tb-ctx{color:#A7B4C4}
+html[data-modo="dia"] .seg{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)}
+html[data-modo="dia"] .seg button{color:#A7B4C4}
+html[data-modo="dia"] .seg button[aria-pressed="true"]{color:#fff}
+html[data-modo="dia"] .seg-ind{background:rgba(255,255,255,.17)}
+html[data-modo="dia"] .suc{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#A7B4C4}
+html[data-modo="dia"] .suc[aria-pressed="true"]{background:rgba(255,255,255,.18);color:#fff}
+html[data-modo="dia"] .drill,html[data-modo="dia"] .f2-box,html[data-modo="dia"] .hoja{background:#fff}
+
+/* — NOCHE PROFUNDA: para el coche o la casa a oscuras — */
+html[data-modo="noche"]{
+  --bg:#05080C; --sidebar:#03060A; --card:#0C1119; --card-2:#141B25;
+  --line:#1A2230; --line-2:#26303F;
+  --ink:#C3CCD8; --ink-2:#7B8797; --ink-3:#5B6879;
+  --acento:#1F8595; --acento-dim:rgba(31,133,149,.12);
+  --sano:#2AA34D;  --sano-dim:rgba(42,163,77,.13);
+  --alarma:#C87A1C;--alarma-dim:rgba(200,122,28,.13);
+  --critico:#C4372C;--critico-dim:rgba(196,55,44,.13);
+  --serie-1:#2AA34D; --serie-2:#1F8595; --serie-3:#C87A1C; --serie-4:#5D6980;
+  --fase2:#565D8E; --fase2-dim:rgba(86,93,142,.11); --fase2-line:rgba(86,93,142,.26);
+}
+/* De noche todo brillo se apaga: es lo que "cala" en la oscuridad. */
+html[data-modo="noche"] *{box-shadow:none!important}
+html[data-modo="noche"] .badge-mock i{animation:none}
+html[data-modo="noche"] body{background:var(--bg)}
+
+/* — Escala de texto: 4 tamaños, mismo layout — */
+html[data-texto="1"]{font-size:15px}
+html[data-texto="2"]{font-size:16.5px}
+html[data-texto="3"]{font-size:18px}
+html[data-texto="1"] body{font-size:15px}
+html[data-texto="2"] body{font-size:16.5px}
+html[data-texto="3"] body{font-size:18px}
+html[data-texto="1"] .hero-c{font-size:clamp(38px,10.5vw,52px)}
+html[data-texto="2"] .hero-c{font-size:clamp(40px,11vw,56px)}
+html[data-texto="3"] .hero-c{font-size:clamp(42px,11.5vw,60px)}
+html[data-texto="1"] .kpi-c{font-size:25px}
+html[data-texto="2"] .kpi-c{font-size:27px}
+html[data-texto="3"] .kpi-c{font-size:29px}
+html[data-texto="1"] .lbl,html[data-texto="1"] .bar-n{font-size:11.5px}
+html[data-texto="2"] .lbl,html[data-texto="2"] .bar-n{font-size:12.5px}
+html[data-texto="3"] .lbl,html[data-texto="3"] .bar-n{font-size:13.5px}
+html[data-texto="1"] .al-t,html[data-texto="1"] .row-n,html[data-texto="1"] .card-t{font-size:14.5px}
+html[data-texto="2"] .al-t,html[data-texto="2"] .row-n,html[data-texto="2"] .card-t{font-size:15.5px}
+html[data-texto="3"] .al-t,html[data-texto="3"] .row-n,html[data-texto="3"] .card-t{font-size:16.5px}
+html[data-texto="1"] .al-d,html[data-texto="1"] .bar-p,html[data-texto="1"] .delta{font-size:12.5px}
+html[data-texto="2"] .al-d,html[data-texto="2"] .bar-p,html[data-texto="2"] .delta{font-size:13.5px}
+html[data-texto="3"] .al-d,html[data-texto="3"] .bar-p,html[data-texto="3"] .delta{font-size:14.5px}
+
+/* — Contraste reforzado: bordes y pesos, sin cambiar la paleta — */
+html[data-contraste="1"] .card,html[data-contraste="1"] .kpi,
+html[data-contraste="1"] .al,html[data-contraste="1"] .seg,html[data-contraste="1"] .suc{border-width:2px}
+html[data-contraste="1"] .row,html[data-contraste="1"] .cmp-row{border-bottom-width:2px}
+html[data-contraste="1"] .lbl,html[data-contraste="1"] .bar-n,
+html[data-contraste="1"] .al-d,html[data-contraste="1"] .card-x{color:var(--ink-2);font-weight:600}
+html[data-contraste="1"] .delta{color:var(--ink-2)}
+html[data-contraste="1"] .tbar-p{background:var(--sano)}
+html[data-contraste="1"] .tbar-n{background:var(--critico)}
+
+/* — Panel de vista — */
+.vista-btn{width:38px;height:38px;border-radius:var(--r-sm);flex:none;display:grid;place-items:center;color:#A7B4C4;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06)}
+.vista-btn:active{transform:scale(.94)}
+.pv-scrim{position:fixed;inset:0;z-index:92;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity var(--mid) var(--ease)}
+.pv-scrim.on{opacity:1;pointer-events:auto}
+.pv{position:fixed;left:0;right:0;bottom:0;z-index:93;background:var(--card);border:1px solid var(--line);
+  border-radius:18px 18px 0 0;max-height:88dvh;overflow-y:auto;transform:translateY(103%);
+  transition:transform var(--mid) var(--ease);padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -20px 60px rgba(0,0,0,.55)}
+.pv.on{transform:none}
+.pv-grip{width:38px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 4px}
+.pv-h{padding:10px 20px 14px;border-bottom:1px solid var(--line)}
+.pv-t{font-size:18px;font-weight:600;letter-spacing:-.02em}
+.pv-s{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+.pv-sec{padding:16px 20px;border-bottom:1px solid var(--line)}
+.pv-sec:last-child{border-bottom:0}
+.pv-lbl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:11px}
+.pv-ops{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pv-ops.tres{grid-template-columns:repeat(3,1fr)}
+.pv-op{
+  padding:14px 10px;border-radius:11px;border:1px solid var(--line);background:var(--card-2);
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  font-size:12.5px;font-weight:600;color:var(--ink-2);min-height:44px;
+  transition:border-color var(--fast) var(--ease),background var(--fast) var(--ease);
+}
+.pv-op[aria-pressed="true"]{border-color:var(--acento);background:var(--acento-dim);color:var(--acento)}
+.pv-op:active{transform:scale(.97)}
+.pv-op .aa{font-weight:700;line-height:1}
+.pv-fila{display:flex;align-items:center;gap:12px;padding:12px 0}
+.pv-fila-t{font-size:13.5px;font-weight:500}
+.pv-fila-d{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.pv-sw{width:44px;height:26px;border-radius:26px;background:var(--line-2);border:1px solid var(--line);position:relative;flex:none;margin-left:auto;transition:background var(--mid) var(--ease)}
+.pv-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--ink-3);transition:transform var(--mid) var(--ease),background var(--mid) var(--ease)}
+.pv-fila[aria-pressed="true"] .pv-sw{background:var(--acento)}
+.pv-fila[aria-pressed="true"] .pv-sw::after{transform:translateX(18px);background:#fff}
+.pv-demo{padding:14px 16px;border-radius:11px;border:1px solid var(--line);background:var(--card-2)}
+.pv-demo-c{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:26px;font-weight:600;letter-spacing:-.03em}
+/* ▲▲ FIN: MODO-VISTA ▲▲ */
+
+/* ▼▼ BLOQUE: FASE2-CSS ▼▼ */
+/* ══════════════ FASE 2 ══════════════ */
+.f2{position:relative}
+.f2-skel{filter:saturate(.15) opacity(.42);pointer-events:none;user-select:none}
+.f2-skel *{animation:none!important;transition:none!important}
+.f2-card{background:var(--card);border:1px dashed var(--fase2-line);border-radius:var(--r);margin-bottom:12px}
+.f2-h{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px dashed var(--fase2-line)}
+.f2-t{font-size:13px;font-weight:600;color:var(--ink-2)}
+.f2-tabla{width:100%;border-collapse:collapse}
+.f2-tabla th{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:9px 15px;border-bottom:1px dashed var(--fase2-line)}
+.f2-tabla th:not(:first-child),.f2-tabla td:not(:first-child){text-align:right}
+.f2-tabla td{padding:11px 15px;border-bottom:1px dashed var(--fase2-line);font-size:12.5px;color:var(--ink-2)}
+.f2-tabla tr:last-child td{border-bottom:0}
+.blk{font-family:var(--mono);color:var(--ink-3);letter-spacing:.05em}
+.f2-bar{height:8px;border-radius:4px;background:var(--fase2-dim);border:1px solid var(--fase2-line)}
+.f2-chart{display:flex;align-items:flex-end;gap:5px;height:96px;padding:0 15px 14px}
+.f2-chart span{flex:1;background:var(--fase2-dim);border:1px solid var(--fase2-line);border-radius:3px 3px 0 0}
+.f2-lista{display:flex;flex-direction:column}
+.f2-li{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px dashed var(--fase2-line)}
+.f2-li:last-child{border-bottom:0}
+.f2-dot{width:8px;height:8px;border-radius:50%;background:var(--fase2-dim);border:1px solid var(--fase2-line);flex:none}
+.f2-grid3{display:grid;grid-template-columns:1fr;gap:12px}
+.f2-panel{position:absolute;inset:0;display:grid;place-items:center;padding:20px;z-index:3}
+.f2-box{max-width:410px;width:100%;text-align:center;background:rgba(11,15,21,.94);border:1px solid var(--fase2-line);border-radius:var(--r);padding:26px 24px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.f2-badge{display:inline-block;padding:3px 9px;border-radius:4px;background:var(--fase2-dim);border:1px solid var(--fase2-line);font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--fase2);margin-bottom:12px}
+.f2-title{font-size:19px;font-weight:600;letter-spacing:-.02em}
+.f2-desc{margin-top:8px;font-size:13px;color:var(--ink-2);line-height:1.55}
+.f2-ul{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;text-align:left}
+.f2-ul li{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;color:var(--ink-2);list-style:none}
+.f2-ul svg{flex:none;margin-top:2px;color:var(--fase2)}
+
+.vista{display:none}
+.vista.on-vista{display:block}
+
+/* ▼▼ BLOQUE: BNAV ▼▼ */
+/* ══════════════ BOTTOM NAV ══════════════ */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:75;
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(7,10,15,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--line);display:flex}
+.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:var(--nav-h);color:var(--ink-3);position:relative;transition:color var(--fast) var(--ease)}
+.bnav button:active{transform:scale(.94)}
+.bnav button[aria-current="page"]{color:var(--ink)}
+.bnav button[aria-current="page"]::before{content:"";position:absolute;top:0;left:26%;right:26%;height:2px;background:var(--acento);box-shadow:0 0 10px var(--acento)}
+.bnav button[data-f2="1"] .bn-l{color:var(--fase2)}
+.bn-l{font-size:9px;font-weight:600}
+
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  transform:translate(-50%,12px);z-index:90;background:var(--card-2);border:1px solid var(--fase2-line);
+  border-radius:100px;padding:9px 16px;font-size:12.5px;opacity:0;pointer-events:none;
+  transition:opacity var(--mid) var(--ease),transform var(--mid) var(--ease);box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* — Recalculo — */
+.recalc .kpi,.recalc .hero,.recalc .card{opacity:.32;transition:opacity var(--fast) var(--ease)}
+
+@media (hover:hover) and (pointer:fine){
+  .side-item:hover{background:var(--card-2);color:var(--ink)}
+  .icon-btn:hover{background:var(--card-2);color:var(--ink)}
+  .seg button:hover{color:var(--ink)}
+  .suc:hover{color:var(--ink)}
+  .al:hover{transform:translateX(2px);border-color:var(--line)}
+  .tcol:hover .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+  .tcol:hover .tbar-p{background:var(--sano)}
+  .tcol:hover .tbar-n{background:var(--critico)}
+  .bar-row:hover .bar-fill{filter:brightness(1.14)}
+}
+
+@media (min-width:768px){
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .alertas{grid-template-columns:repeat(2,1fr)}
+  .f2-grid3{grid-template-columns:repeat(3,1fr)}
+  .c-flujo{grid-column:span 12}
+}
+@media (min-width:1024px){
+  .sidebar{transform:none}
+  .scrim,.bnav{display:none}
+  body{padding-left:var(--sidebar-w)}
+  .menu-btn{display:none}
+  .wrap{padding:20px 26px 40px}
+  .tb-in{padding:15px 26px}
+  .ctrls{margin-top:0;margin-left:auto}
+  .tb-row{align-items:center}
+  .hero{grid-column:span 5}
+  .c-flujo{grid-column:span 7}
+  .c-in{grid-column:span 6}
+  .c-out{grid-column:span 6}
+  .alertas{grid-template-columns:repeat(4,1fr)}
+  .hero-c{font-size:44px}
+  .flujo-svg{height:238px}
+  .toast{bottom:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+  <div class="brand">
+    <div class="brand-row">
+      <!-- TODO: sustituir por el SVG oficial de La Brasileña -->
+      <svg width="24" height="32" viewBox="0 0 26 34" fill="none" aria-hidden="true">
+        <path d="M13 1l1.7 3.4L13 7.4 11.3 4.4z" fill="#fff"/>
+        <path d="M13 26.6l1.7 3.4L13 33l-1.7-3z" fill="#fff"/>
+        <path d="M13 6v22" stroke="#fff" stroke-width="1.1" opacity=".5"/>
+        <path d="M7.5 9.2h6.9c2.4 0 4 1.3 4 3.3 0 1.5-.9 2.5-2.2 2.9 1.6.4 2.7 1.5 2.7 3.3 0 2.3-1.8 3.8-4.5 3.8H7.5" stroke="#FFA228" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="9.6" y="10.9" width="4.6" height="3" rx=".8" fill="#FF4438"/>
+        <rect x="9.6" y="17.4" width="4.6" height="3" rx=".8" fill="#FF4438"/>
+      </svg>
+      <div><div class="brand-n">Brasileña</div><div class="brand-s">Churrasquería</div></div>
+    </div>
+    <div class="brand-e">Centro de Control</div>
+  </div>
+  <nav class="side-nav side-solo-esc" id="sideNav"></nav>
+  <div class="side-nav side-solo-mov" id="sideMovil"></div>
+  <div class="side-user">
+    <div class="avatar">D</div>
+    <div><div class="su-n">Dani</div><div class="su-r">Dueño</div></div>
+  </div>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<header class="topbar">
+  <div class="tb-in">
+    <div class="tb-row">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Abrir menú">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div>
+        <div class="tb-saludo" id="tbSaludo">Hola, Dani</div>
+        <div class="tb-ctx" id="tbCtx"></div>
+      </div>
+      <div class="tb-sp"></div>
+      <button class="vista-btn" id="vistaBtn" aria-label="Ajustar vista">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <div class="badge-mock"><i></i>Datos de ejemplo</div>
+    </div>
+    <div class="ctrls" id="ctrls">
+      <div class="seg" id="periodo" role="group" aria-label="Periodo">
+        <span class="seg-ind" id="segInd"></span>
+        <button type="button" data-p="hoy" aria-pressed="true">Hoy</button>
+        <button type="button" data-p="semana" aria-pressed="false">Semana</button>
+        <button type="button" data-p="mes" aria-pressed="false">Mes</button>
+      </div>
+      <div class="suc-row" id="sucRow" role="group" aria-label="Sucursal"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="vista on-vista" id="v-inicio">
+    <div class="grid">
+      <div class="kpis" id="kpis"></div>
+      <div class="alertas" id="alertas"></div>
+
+      <article class="card hero" id="hero" data-e="sano">
+        <div class="hero-glow"></div>
+        <div class="hero-b">
+          <div class="lbl">Balance <span id="heroPer">de hoy</span></div>
+          <div class="hero-c" id="heroC">$0</div>
+          <div class="hero-m">
+            <span class="estado" id="heroE" data-e="sano"></span>
+            <span id="heroDWrap"></span>
+          </div>
+          <div class="gauge-wrap">
+            <svg class="gauge" viewBox="0 0 220 134" role="img" aria-labelledby="gaugeLbl">
+              <title id="gaugeLbl">Porcentaje del dinero que entró y se quedó</title>
+              <defs>
+                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="5" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <path class="g-bg" d="M18 112 A92 92 0 0 1 202 112"/>
+              <path class="g-fill" id="gFill" d="M18 112 A92 92 0 0 1 202 112" filter="url(#glow)"/>
+              <text class="g-pct" id="gPct" x="110" y="98" text-anchor="middle">0%</text>
+              <text class="g-cap" x="110" y="117" text-anchor="middle">TE QUEDÓ</text>
+              <text class="g-end" x="18" y="130" text-anchor="middle">0</text>
+              <text class="g-end" x="202" y="130" text-anchor="middle">100</text>
+            </svg>
+            <p class="gauge-leyenda" id="gLey"></p>
+          </div>
+          <p class="nota">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>
+            <span id="nConf"></span>
+          </p>
+        </div>
+      </article>
+
+      <article class="card c-flujo" id="cFlujo">
+        <div class="card-h">
+          <h2 class="card-t">Flujo del periodo</h2>
+          <div class="leyenda">
+            <span class="leg"><i style="background:var(--sano)"></i>Entró</span>
+            <span class="leg"><i style="background:var(--critico)"></i>Salió</span>
+          </div>
+        </div>
+        <div class="card-b"><svg class="flujo-svg" id="flujoSvg" preserveAspectRatio="none"></svg></div>
+      </article>
+
+      <article class="card c-in">
+        <div class="card-h"><h2 class="card-t">Cómo te pagaron</h2><span class="card-x num" id="totIn"></span></div>
+        <div class="bars" id="barsIn"></div>
+      </article>
+
+      <article class="card c-out">
+        <div class="card-h"><h2 class="card-t">En qué se fue</h2><span class="card-x num" id="totOut"></span></div>
+        <div class="bars" id="barsOut"></div>
+      </article>
+
+      <article class="card c-cmp" id="cCmp" hidden>
+        <div class="card-h"><h2 class="card-t">Sucursales del grupo</h2><span class="card-x" id="cmpX"></span></div>
+        <div class="cmp" id="cmp"></div>
+      </article>
+
+      <article class="card">
+        <div class="card-h"><h2 class="card-t">Balance día por día</h2><span class="card-x" id="trRango"></span></div>
+        <div class="card-b">
+          <div class="trend" id="trend"><div class="tzero"></div></div>
+          <div class="tax"><span id="trA"></span><span id="trB"></span></div>
+        </div>
+      </article>
+
+      <aside class="fase1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>
+        <div>
+          <div class="f1-t">Vista Fase 1: entradas y salidas</div>
+          <div class="f1-d">Este balance es dinero que entró menos dinero que salió. Todavía no descuenta la nómina que se paga en efectivo ni los impuestos. Eso llega en Fase 2.</div>
+        </div>
+      </aside>
+
+      <p class="pie">Fuente: Soft Restaurant · Contrato de datos v1.0 · Todas las cifras de esta pantalla son de ejemplo.</p>
+    </div>
+  </section>
+
+  <section class="vista" id="v-cortes"></section>
+  <section class="vista" id="v-sucursales"></section>
+  <section class="vista" id="v-alertas"></section>
+  <section class="vista" id="v-reportes"></section>
+</main>
+
+<nav class="bnav" id="bnav" aria-label="Secciones"></nav>
+<div class="pv-scrim" id="pvScrim"></div>
+<aside class="pv" id="pv" role="dialog" aria-modal="true" aria-labelledby="pvT">
+  <div class="pv-grip"></div>
+  <div class="pv-h"><div class="pv-t" id="pvT">Cómo se ve</div>
+    <div class="pv-s">Ajústalo a donde estés: al sol, en la sombra o de noche.</div></div>
+  <div id="pvBody"></div>
+</aside>
+
+<div class="drill-scrim" id="drillScrim"></div>
+<aside class="drill" id="drill" role="dialog" aria-modal="true" aria-labelledby="drillT">
+  <div class="drill-grip"></div>
+  <div class="drill-h">
+    <div class="drill-eyebrow" id="drillEy"></div>
+    <h2 class="drill-t" id="drillT"></h2>
+    <div class="drill-v" id="drillV"></div>
+    <button class="drill-x" id="drillX" aria-label="Cerrar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div id="drillBody"></div>
+</aside>
+<div class="toast" id="toast"></div>
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+
+<script>
+"use strict";
+/* ▼▼ BLOQUE: DATA ▼▼ */
+/* ══════════════════════════════════════════════════════════════════════
+   ══ DATA ══
+   Mock que respeta LITERALMENTE el contrato de datos v1.0.
+   Nombres de campo exactos: venta_diaria, compra_proveedor, gasto.
+
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ PUNTO DE SWAP A SUPABASE                                         │
+   │ Reemplazar cargarDatos() por:                                    │
+   │                                                                  │
+   │   async function cargarDatos(){                                  │
+   │     const [v,c,g] = await Promise.all([                          │
+   │       sb.from('venta_diaria').select('*'),                       │
+   │       sb.from('compra_proveedor').select('*'),                   │
+   │       sb.from('gasto').select('*')                               │
+   │     ]);                                                          │
+   │     return {venta_diaria:v.data, compra_proveedor:c.data,        │
+   │             gasto:g.data};                                       │
+   │   }                                                              │
+   │                                                                  │
+   │ Nada más en este archivo cambia. LOGIC y RENDER no se enteran.   │
+   └──────────────────────────────────────────────────────────────────┘
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── CATÁLOGO DE SUCURSALES ──────────────────────────────────────────
+   Nombres tomados del demo del grupo. La navegación queda congelada
+   aquí: agregar datos reales de otra sucursal NO cambia una sola
+   pantalla, solo se llena esta tabla.
+
+   perfil.base   = venta promedio de un día normal
+   perfil.costo  = costo de insumos como fracción de la venta
+   perfil.fijos  = gastos fijos mensuales
+   [SUPUESTO] Montos y costos son de ejemplo, calibrados para que el
+   selector muestre los tres estados. Confirmar con Dani. */
+const SUCURSALES = [
+  { sucursal_id:"pirata_1",  nombre:"El Pirata I",   zona:"Centro",        razon_social_id:"rs_1", activa:true,
+    perfil:{ seed:110, base:78400, costo:0.555, fijos:{renta:96000,luz:24000,gas:18000,agua:4800,otros:13000} } },
+  { sucursal_id:"pirata_2",  nombre:"El Pirata II",  zona:"Camelinas",     razon_social_id:"rs_1", activa:true,
+    perfil:{ seed:220, base:71900, costo:0.565, fijos:{renta:88000,luz:22000,gas:16500,agua:4400,otros:12000} } },
+  { sucursal_id:"pirata_3",  nombre:"El Pirata III", zona:"Altozano",      razon_social_id:"rs_1", activa:true,
+    perfil:{ seed:330, base:69200, costo:0.575, fijos:{renta:84000,luz:21000,gas:15800,agua:4200,otros:11500} } },
+  { sucursal_id:"santa_1",   nombre:"La Santa I",    zona:"Centro",        razon_social_id:"rs_2", activa:true,
+    perfil:{ seed:440, base:63100, costo:0.575, fijos:{renta:78000,luz:19500,gas:14800,agua:3900,otros:11000} } },
+  { sucursal_id:"santa_2",   nombre:"La Santa II",   zona:"Las Américas",  razon_social_id:"rs_2", activa:true,
+    perfil:{ seed:550, base:58800, costo:0.690, fijos:{renta:74000,luz:18500,gas:14000,agua:3700,otros:10500}, diaAlarma:5 } },
+  /* La Brasileña es el piloto. Su semilla y parámetros NO se tocan:
+     mantienen la calibración validada (Hoy Sano · Semana Vigilar · Mes Sano). */
+  { sucursal_id:"brasilena", nombre:"La Brasileña",  zona:"Piloto",        razon_social_id:"rs_1", activa:true, piloto:true,
+    perfil:{ seed:20260814, base:46000, costo:0.570, fijos:{renta:78000,luz:19400,gas:14800,agua:3900,otros:11200}, diaAlarma:3 } },
+  { sucursal_id:"tarasca",   nombre:"La Tarasca",    zona:"Junto a Ónix",  razon_social_id:"rs_3", activa:true,
+    perfil:{ seed:660, base:50700, costo:0.845, fijos:{renta:72000,luz:18000,gas:13600,agua:3600,otros:10200}, diaAlarma:1 } },
+  { sucursal_id:"santa_3",   nombre:"La Santa III",  zona:"La Poza",       razon_social_id:"rs_2", activa:false },
+  { sucursal_id:"capitan",   nombre:"El Capitán",    zona:"Ex-Chakra",     razon_social_id:"rs_3", activa:false }
+];
+const SUC_ACTIVAS = SUCURSALES.filter(s => s.activa);
+/* Alcance especial: consolidado del grupo. Se comporta como una sucursal
+   más en toda la UI, por eso la navegación no cambia al seleccionarlo. */
+const GRUPO_ID = "grupo";
+
+const HOY = "2026-08-14";
+const DIAS_MOCK = 65;
+
+/* PRNG con semilla: el mock es idéntico en cada carga y en cada máquina.
+   Sin esto, tú y Luis verían números distintos de la misma versión. */
+function prng(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function diaISO(base, offset){
+  const d = new Date(base + "T12:00:00");
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().slice(0,10);
+}
+
+const PROVEEDORES = [
+  { proveedor:"Carnes del Bajío",    concepto:"Carne y res",       peso:.40 },
+  { proveedor:"Abarrotes La Merced", concepto:"Abarrotes y secos", peso:.22 },
+  { proveedor:"Frutería Michoacán",  concepto:"Frutas y verduras", peso:.16 },
+  { proveedor:"Distribuidora Vall",  concepto:"Bebidas y cerveza", peso:.15 },
+  { proveedor:"Limpieza Integral",   concepto:"Limpieza",          peso:.07 }
+];
+
+/** Genera venta_diaria y compra_proveedor de UNA sucursal.
+    El orden de consumo del PRNG es fijo: cambiarlo altera todos los
+    números generados. */
+function generarSucursal(suc){
+  const p = suc.perfil;
+  const rnd = prng(p.seed);
+  const venta_diaria = [], compra_proveedor = [];
+
+  /* Estacionalidad de restaurante: viernes y sábado altos, lunes bajo,
+     domingo medio-alto (comida familiar). */
+  const factorDia = [0.78, 0.62, 0.72, 0.80, 0.94, 1.42, 1.55]; // dom..sab
+  const sumaFactores = factorDia.reduce((a,b) => a + b, 0);
+  const costoSemanaBase = sumaFactores * p.base * p.costo;
+  /* La compra del día sigue a la venta del día: se surte más para el
+     fin de semana. Con ruido de ±25% el margen diario oscila solo. */
+  const pesoCompraDia = factorDia.map(f => f / sumaFactores);
+
+  for (let i = DIAS_MOCK - 1; i >= 0; i--){
+    const fecha = diaISO(HOY, -i);
+    const dow = new Date(fecha + "T12:00:00").getDay();
+    const ruido = 0.90 + rnd() * 0.22;
+    /* Día malo puntual, distinto en cada sucursal. No todas tienen uno:
+       un mal día simultáneo en las siete no sería creíble. */
+    const esDiaAlarma = (p.diaAlarma !== undefined && i === p.diaAlarma);
+    const bruta = Math.round(p.base * factorDia[dow] * ruido * (esDiaAlarma ? 0.66 : 1) / 10) * 10;
+
+    const efe = Math.round(bruta * (0.30 + rnd()*0.05));
+    const tar = Math.round(bruta * (0.44 + rnd()*0.05));
+    const tra = Math.round(bruta * (0.09 + rnd()*0.03));
+    const del = bruta - efe - tar - tra;
+    const tickets = Math.max(1, Math.round(bruta / (255 + rnd()*70)));
+
+    venta_diaria.push({
+      sucursal_id: suc.sucursal_id,
+      razon_social_id: suc.razon_social_id,
+      fecha,
+      venta_bruta: bruta,
+      num_tickets: tickets,
+      ticket_promedio: Math.round(bruta / tickets),
+      por_metodo_pago:{ efectivo:efe, tarjeta:tar, transferencia:tra, delivery_apps:del },
+      cortesias_monto: Math.round(bruta * 0.006),
+      cancelaciones_monto: Math.round(bruta * 0.004),
+      fuente:"soft_restaurant",
+      confianza_dato:"media"
+    });
+
+    const gastoTotalDia = Math.round(
+      costoSemanaBase * pesoCompraDia[dow] * (0.75 + rnd()*0.50) * (esDiaAlarma ? 4.5 : 1)
+    );
+    PROVEEDORES.forEach(pr => {
+      const monto = Math.round(gastoTotalDia * pr.peso * (0.88 + rnd()*0.24) / 10) * 10;
+      if (monto <= 0) return;
+      compra_proveedor.push({
+        sucursal_id: suc.sucursal_id,
+        razon_social_id: suc.razon_social_id,
+        proveedor: pr.proveedor,
+        fecha,
+        concepto: pr.concepto,
+        monto,
+        forma_pago: rnd() > 0.45 ? "transferencia" : "efectivo",
+        tiene_factura: rnd() > 0.28,
+        vencimiento: null
+      });
+    });
+  }
+  return { venta_diaria, compra_proveedor };
+}
+
+function cargarDatos(){
+  const venta_diaria = [], compra_proveedor = [], gasto = [];
+  SUC_ACTIVAS.forEach(suc => {
+    const g = generarSucursal(suc);
+    venta_diaria.push(...g.venta_diaria);
+    compra_proveedor.push(...g.compra_proveedor);
+    /* gasto — fijos mensuales. El contrato los define por periodo YYYY-MM,
+       no por día. LOGIC los prorratea; ver prorrateoGastos(). */
+    ["2026-06","2026-07","2026-08"].forEach(periodo => {
+      Object.entries(suc.perfil.fijos).forEach(([categoria, monto]) => {
+        gasto.push({
+          sucursal_id: suc.sucursal_id,
+          razon_social_id: suc.razon_social_id,
+          categoria, periodo, monto,
+          forma_pago: (categoria === "gas" || categoria === "otros") ? "efectivo" : "transferencia"
+        });
+      });
+    });
+  });
+  return { venta_diaria, compra_proveedor, gasto };
+}
+
+const DATA = cargarDatos();
+/* ▼▼ BLOQUE: LOGIC ▼▼ */
+/* ══════════════════════════════════════════════════════════════════════
+   ══ LOGIC ══
+   Funciones PURAS. Sin DOM. Sin fetch. Entra data, sale kpi_consolidado.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* UMBRALES DEL SEMÁFORO
+   // VALOR INICIAL SUGERIDO — pendiente aprobación de Dani (doc maestro §5).
+   Se evalúan sobre el margen de caja = balance / ingresos. */
+const UMBRALES = { sano: 0.24, alarma: 0.06 };   // >=24% sano · 6–24% vigilar · <6% atender
+
+const DIAS_POR_PERIODO = { hoy: 1, semana: 7, mes: 30 };
+
+/** Rango [desde, hasta] del periodo actual o del inmediatamente anterior. */
+function rangoPeriodo(periodo, anterior){
+  const n = DIAS_POR_PERIODO[periodo];
+  const corrimiento = anterior ? -n : 0;
+  return { desde: diaISO(HOY, -(n - 1) + corrimiento), hasta: diaISO(HOY, corrimiento), dias: n };
+}
+
+const enRango = (fecha, r) => fecha >= r.desde && fecha <= r.hasta;
+
+/** Prorrateo de gastos fijos: el contrato los da mensuales, la vista es diaria. */
+function prorrateoGastos(gastos, sucursal_id, rango){
+  const diasDelMes = (p) => new Date(+p.slice(0,4), +p.slice(5,7), 0).getDate();
+  let total = 0;
+  const porCategoria = {};
+  for (let i = 0; i < rango.dias; i++){
+    const fecha = diaISO(rango.hasta, -i);
+    const periodo = fecha.slice(0,7);
+    gastos.filter(g => g.sucursal_id === sucursal_id && g.periodo === periodo).forEach(g => {
+      const diario = g.monto / diasDelMes(periodo);
+      total += diario;
+      porCategoria[g.categoria] = (porCategoria[g.categoria] || 0) + diario;
+    });
+  }
+  Object.keys(porCategoria).forEach(k => porCategoria[k] = Math.round(porCategoria[k]));
+  return { total: Math.round(total), porCategoria };
+}
+
+/** Agrega ingresos del rango. Devuelve total + desglose por método de pago. */
+function agregarIngresos(ventas, sucursal_id, rango){
+  const metodos = { efectivo:0, tarjeta:0, transferencia:0, delivery_apps:0 };
+  let total = 0;
+  ventas.filter(v => v.sucursal_id === sucursal_id && enRango(v.fecha, rango)).forEach(v => {
+    total += v.venta_bruta;
+    Object.keys(metodos).forEach(k => metodos[k] += v.por_metodo_pago[k]);
+  });
+  return { total: Math.round(total), metodos };
+}
+
+/** Agrega salidas del rango: compras a proveedor + gastos fijos prorrateados. */
+function agregarSalidas(compras, gastos, sucursal_id, rango){
+  let proveedores = 0;
+  compras.filter(c => c.sucursal_id === sucursal_id && enRango(c.fecha, rango))
+         .forEach(c => proveedores += c.monto);
+  const fijos = prorrateoGastos(gastos, sucursal_id, rango);
+  return {
+    total: Math.round(proveedores + fijos.total),
+    categorias: {
+      proveedores: Math.round(proveedores),
+      renta: fijos.porCategoria.renta || 0,
+      servicios: (fijos.porCategoria.luz || 0) + (fijos.porCategoria.gas || 0) + (fijos.porCategoria.agua || 0),
+      otros: fijos.porCategoria.otros || 0
+    }
+  };
+}
+
+/** Clasifica el estado según el margen de caja. */
+function clasificar(ingresos, balance){
+  if (ingresos <= 0) return "critico";
+  const margen = balance / ingresos;
+  if (margen >= UMBRALES.sano)   return "sano";
+  if (margen >= UMBRALES.alarma) return "alarma";
+  return "critico";
+}
+
+/** Contrato v1.0 §5 — kpi_consolidado. Esta es la salida que consume RENDER. */
+function calcularKPI(data, sucursal_id, periodo, anterior){
+  const rango = rangoPeriodo(periodo, anterior);
+  const ing = agregarIngresos(data.venta_diaria, sucursal_id, rango);
+  const sal = agregarSalidas(data.compra_proveedor, data.gasto, sucursal_id, rango);
+  const balance = ing.total - sal.total;
+
+  return {
+    alcance: "sucursal",
+    sucursal_id,
+    fecha: rango.hasta,
+    ingresos: ing.total,
+    salidas: sal.total,
+    balance,
+    estado_general: clasificar(ing.total, balance),
+    nota_confianza: "Datos de ejemplo. Las salidas incluyen compras a proveedor y gastos fijos prorrateados; no incluyen nómina en efectivo ni impuestos.",
+    // — Desgloses derivados, para que RENDER no tenga que calcular nada —
+    _metodos: ing.metodos,
+    _categorias: sal.categorias,
+    _rango: rango
+  };
+}
+
+/** Serie de balance por día, para la tendencia. */
+function serieDiaria(data, sucursal_id, dias){
+  const out = [];
+  for (let i = dias - 1; i >= 0; i--){
+    const fecha = diaISO(HOY, -i);
+    const r = { desde: fecha, hasta: fecha, dias: 1 };
+    const ing = agregarIngresos(data.venta_diaria, sucursal_id, r).total;
+    const sal = agregarSalidas(data.compra_proveedor, data.gasto, sucursal_id, r).total;
+    out.push({ fecha, balance: ing - sal, esHoy: fecha === HOY });
+  }
+  return out;
+}
+
+/** Variación porcentual entre dos valores. null si no es comparable. */
+function variacion(actual, previo){
+  if (!previo) return null;
+  return (actual - previo) / Math.abs(previo) * 100;
+}
+
+/** Estado actual de cada sucursal, para las lámparas de los chips. */
+function estadosSucursales(data, periodo){
+  return SUCURSALES.map(s => ({
+    ...s,
+    estado: s.activa ? calcularKPI(data, s.sucursal_id, periodo, false).estado_general : "off"
+  }));
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ══ LOGIC · AGREGADO v3.0 ══
+   Funciones puras nuevas. No modifican nada de lo anterior.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/** Tickets del periodo. num_tickets ya existe en el contrato v1.0 §1
+    y hasta ahora no se estaba usando. */
+function agregarTickets(ventas, sucursal_id, rango){
+  let tickets = 0, bruta = 0;
+  ventas.filter(v => v.sucursal_id === sucursal_id && enRango(v.fecha, rango)).forEach(v => {
+    tickets += v.num_tickets;
+    bruta += v.venta_bruta;
+  });
+  return { tickets, ticket_promedio: tickets > 0 ? Math.round(bruta / tickets) : 0 };
+}
+
+/* UMBRALES DE ALERTA
+   // VALOR INICIAL SUGERIDO — pendiente aprobación de Dani (doc maestro §5). */
+const UMBRALES_ALERTA = {
+  salidaSobrePromedio: 0.60,  // salida diaria 60% arriba del promedio de 30 días
+  caidaVenta: 0.20,           // venta 20% abajo del mismo día de la semana pasada
+  ventanaPromedio: 30         // días de referencia para "lo normal"
+};
+
+/** Salidas de un solo día. Auxiliar puro. */
+function salidasDelDia(data, sucursal_id, fecha){
+  return agregarSalidas(data.compra_proveedor, data.gasto, sucursal_id,
+                        { desde:fecha, hasta:fecha, dias:1 }).total;
+}
+/** Venta bruta de un solo día. Auxiliar puro. */
+function ventaDelDia(data, sucursal_id, fecha){
+  const v = data.venta_diaria.find(x => x.sucursal_id === sucursal_id && x.fecha === fecha);
+  return v ? v.venta_bruta : 0;
+}
+
+const DIA_SEMANA = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const fechaCorta = (iso) =>
+  new Date(iso + "T12:00:00").toLocaleDateString("es-MX", { day:"numeric", month:"long" });
+
+/**
+ * Alertas derivadas de los datos. Tres reglas, ninguna inventada:
+ * todas se calculan de venta_diaria y compra_proveedor.
+ * Las mismas fórmulas correrán sobre Supabase sin cambios.
+ * @returns Array<{id, estado, titulo, detalle, fecha}>
+ */
+function detectarAlertas(data, sucursal_id, periodo){
+  const rango = rangoPeriodo(periodo, false);
+  const alertas = [];
+
+  /* — Regla 1 · Día con balance negativo — */
+  serieDiaria(data, sucursal_id, rango.dias)
+    .filter(d => d.balance < 0)
+    .forEach(d => alertas.push({
+      id: "neg_" + d.fecha,
+      estado: "critico",
+      titulo: "Balance negativo el " + fechaCorta(d.fecha),
+      detalle: "Salieron " + Math.abs(d.balance) + " más de lo que entró",
+      _monto: Math.abs(d.balance),
+      _tipo: "monto",
+      fecha: d.fecha
+    }));
+
+  /* — Regla 2 · Salida diaria fuera de rango —
+     "Lo normal" = promedio diario de salidas de los 30 días previos. */
+  let suma = 0;
+  for (let i = 1; i <= UMBRALES_ALERTA.ventanaPromedio; i++){
+    suma += salidasDelDia(data, sucursal_id, diaISO(HOY, -i));
+  }
+  const promedioSalidas = suma / UMBRALES_ALERTA.ventanaPromedio;
+
+  if (promedioSalidas > 0){
+    for (let i = 0; i < rango.dias; i++){
+      const fecha = diaISO(HOY, -i);
+      const salidas = salidasDelDia(data, sucursal_id, fecha);
+      const exceso = salidas / promedioSalidas - 1;
+      if (exceso > UMBRALES_ALERTA.salidaSobrePromedio){
+        alertas.push({
+          id: "alta_" + fecha,
+          estado: "alarma",
+          titulo: "Compra alta el " + fechaCorta(fecha),
+          detalle: Math.round(exceso * 100) + "% arriba de tu promedio",
+          _monto: salidas,
+          _tipo: "monto_pct",
+          fecha
+        });
+      }
+    }
+  }
+
+  /* — Regla 3 · Caída de venta contra el mismo día de la semana pasada — */
+  const ventaHoy = ventaDelDia(data, sucursal_id, HOY);
+  const ventaPrev = ventaDelDia(data, sucursal_id, diaISO(HOY, -7));
+  if (ventaPrev > 0){
+    const caida = 1 - ventaHoy / ventaPrev;
+    if (caida > UMBRALES_ALERTA.caidaVenta){
+      const dow = new Date(HOY + "T12:00:00").getDay();
+      alertas.push({
+        id: "caida_" + HOY,
+        estado: "alarma",
+        titulo: "Venta abajo vs. el " + DIA_SEMANA[dow] + " pasado",
+        detalle: Math.round(caida * 100) + "% menos que hace una semana",
+        _monto: ventaHoy,
+        _tipo: "pct",
+        fecha: HOY
+      });
+    }
+  }
+
+  /* Crítico primero, luego lo más reciente. Máximo 4 en pantalla. */
+  const peso = { critico:0, alarma:1 };
+  return alertas
+    .sort((a,b) => peso[a.estado] - peso[b.estado] || b.fecha.localeCompare(a.fecha))
+    .slice(0, 4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ══ LOGIC · AGREGADO v4.0 ══
+   Serie de flujo diario. serieDiaria() solo devolvía balance; la gráfica
+   de flujo necesita ingresos y salidas por separado. Función pura.
+   ══════════════════════════════════════════════════════════════════════ */
+function serieFlujo(data, sucursal_id, dias){
+  const out = [];
+  for (let i = dias - 1; i >= 0; i--){
+    const fecha = diaISO(HOY, -i);
+    const r = { desde:fecha, hasta:fecha, dias:1 };
+    const ingresos = agregarIngresos(data.venta_diaria, sucursal_id, r).total;
+    const salidas  = agregarSalidas(data.compra_proveedor, data.gasto, sucursal_id, r).total;
+    out.push({ fecha, ingresos, salidas, balance: ingresos - salidas, esHoy: fecha === HOY });
+  }
+  return out;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ══ LOGIC · AGREGADO v5.0 ══
+   1) Consolidado del grupo: el alcance "grupo" se comporta como una
+      sucursal más, por eso la UI no cambia al seleccionarlo.
+   2) Motor de explicaciones: de dónde sale cada número.
+   Todo funciones puras.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const esGrupo = (id) => id === GRUPO_ID;
+
+/** kpi_consolidado de una sucursal o del grupo entero. */
+function kpiDe(data, id, periodo, anterior){
+  if (!esGrupo(id)) return calcularKPI(data, id, periodo, anterior);
+
+  const partes = SUC_ACTIVAS.map(s => calcularKPI(data, s.sucursal_id, periodo, anterior));
+  const suma = (campo) => partes.reduce((a,k) => a + k[campo], 0);
+  const ingresos = suma("ingresos"), salidas = suma("salidas");
+  const balance = ingresos - salidas;
+
+  const acumular = (clave) => partes.reduce((acc, k) => {
+    Object.entries(k[clave]).forEach(([kk,v]) => acc[kk] = (acc[kk]||0) + v);
+    return acc;
+  }, {});
+
+  return {
+    alcance:"grupo", sucursal_id:GRUPO_ID, fecha: partes[0].fecha,
+    ingresos, salidas, balance,
+    estado_general: clasificar(ingresos, balance),
+    nota_confianza: "Datos de ejemplo. Suma de las " + SUC_ACTIVAS.length +
+      " sucursales operando; no incluye nómina en efectivo ni impuestos.",
+    _metodos: acumular("_metodos"),
+    _categorias: acumular("_categorias"),
+    _rango: partes[0]._rango,
+    _porSucursal: SUC_ACTIVAS.map((s,i) => ({
+      sucursal_id:s.sucursal_id, nombre:s.nombre, zona:s.zona,
+      ingresos:partes[i].ingresos, salidas:partes[i].salidas,
+      balance:partes[i].balance, estado:partes[i].estado_general
+    })).sort((a,b) => b.balance - a.balance)
+  };
+}
+
+function ticketsDe(data, id, rango){
+  if (!esGrupo(id)) return agregarTickets(data.venta_diaria, id, rango);
+  let tickets = 0, bruta = 0;
+  SUC_ACTIVAS.forEach(s => {
+    const t = agregarTickets(data.venta_diaria, s.sucursal_id, rango);
+    tickets += t.tickets;
+    bruta += t.tickets * t.ticket_promedio;
+  });
+  return { tickets, ticket_promedio: tickets > 0 ? Math.round(bruta / tickets) : 0 };
+}
+
+function serieBalanceDe(data, id, dias){
+  if (!esGrupo(id)) return serieDiaria(data, id, dias);
+  const base = SUC_ACTIVAS.map(s => serieDiaria(data, s.sucursal_id, dias));
+  return base[0].map((d,i) => ({
+    fecha:d.fecha, esHoy:d.esHoy,
+    balance: base.reduce((a,serie) => a + serie[i].balance, 0)
+  }));
+}
+
+function serieFlujoDe(data, id, dias){
+  if (!esGrupo(id)) return serieFlujo(data, id, dias);
+  const base = SUC_ACTIVAS.map(s => serieFlujo(data, s.sucursal_id, dias));
+  return base[0].map((d,i) => {
+    const ingresos = base.reduce((a,s) => a + s[i].ingresos, 0);
+    const salidas  = base.reduce((a,s) => a + s[i].salidas, 0);
+    return { fecha:d.fecha, esHoy:d.esHoy, ingresos, salidas, balance: ingresos - salidas };
+  });
+}
+
+/** Alertas de una sucursal o de todo el grupo (etiquetadas con su origen). */
+function alertasDe(data, id, periodo){
+  if (!esGrupo(id)) return detectarAlertas(data, id, periodo);
+  const todas = [];
+  SUC_ACTIVAS.forEach(s => {
+    detectarAlertas(data, s.sucursal_id, periodo).forEach(a => {
+      todas.push({ ...a, id: s.sucursal_id + "_" + a.id, sucursal: s.nombre, sucursal_id: s.sucursal_id });
+    });
+  });
+  const peso = { critico:0, alarma:1 };
+  return todas.sort((a,b) => peso[a.estado] - peso[b.estado] || b.fecha.localeCompare(a.fecha)).slice(0, 4);
+}
+
+/** Estado de cada sucursal + el grupo, para las lámparas del selector. */
+function estadosCatalogo(data, periodo){
+  const out = [{ sucursal_id:GRUPO_ID, nombre:"Grupo", zona:SUC_ACTIVAS.length + " sucursales",
+                 activa:true, estado: kpiDe(data, GRUPO_ID, periodo, false).estado_general }];
+  SUCURSALES.forEach(s => out.push({
+    ...s, estado: s.activa ? calcularKPI(data, s.sucursal_id, periodo, false).estado_general : "off"
+  }));
+  return out;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOTOR DE EXPLICACIONES
+   Cada número de la pantalla puede decir de dónde salió. Devuelve un
+   objeto plano; RENDER solo lo pinta.
+   ══════════════════════════════════════════════════════════════════════ */
+const FUENTE_VENTAS  = "Soft Restaurant · tabla venta_diaria";
+const FUENTE_COMPRAS = "Capturado / factura · tabla compra_proveedor";
+const FUENTE_GASTOS  = "Gastos fijos mensuales · tabla gasto";
+
+function explicar(clave, ctx){
+  const { kpi, tk, periodo, nombreAlcance, dias } = ctx;
+  const etiquetaPeriodo = { hoy:"hoy", semana:"los últimos 7 días", mes:"los últimos 30 días" }[periodo];
+  const base = { alcance: nombreAlcance, periodo: etiquetaPeriodo };
+
+  if (clave === "balance") return { ...base,
+    titulo:"Balance", valor:kpi.balance,
+    formula:"Todo lo que entró  −  todo lo que salió",
+    pasos:[
+      { etiqueta:"Ventas cobradas", valor:kpi.ingresos, signo:"+" },
+      { etiqueta:"Compras y gastos pagados", valor:-kpi.salidas, signo:"−" },
+      { etiqueta:"Balance", valor:kpi.balance, total:true }
+    ],
+    fuente:[FUENTE_VENTAS, FUENTE_COMPRAS, FUENTE_GASTOS],
+    significado:"Es el dinero que realmente quedó en caja y banco en el periodo. No es tu ganancia: todavía falta descontar la nómina que se paga en efectivo y los impuestos.",
+    ojo:"Un balance alto un día suelto no significa un buen mes. Si ese día no llegó mercancía, el gasto aparece después."
+  };
+
+  if (clave === "ingresos") return { ...base,
+    titulo:"Lo que entró", valor:kpi.ingresos,
+    formula:"Suma de venta_bruta de cada día del periodo",
+    pasos: Object.entries(kpi._metodos).filter(([,v]) => v > 0)
+      .sort((a,b) => b[1]-a[1])
+      .map(([k,v]) => ({ etiqueta:{efectivo:"Efectivo",tarjeta:"Tarjeta",transferencia:"Transferencia",delivery_apps:"Apps de reparto"}[k], valor:v }))
+      .concat([{ etiqueta:"Total", valor:kpi.ingresos, total:true }]),
+    fuente:[FUENTE_VENTAS],
+    significado:"Venta bruta registrada en el punto de venta, antes de descontar cualquier gasto. Incluye lo cobrado por todos los métodos de pago.",
+    ojo:"Es lo que el sistema dice que se vendió. Que haya entrado a caja se confirma con el corte del turno — eso llega en Fase 2."
+  };
+
+  if (clave === "salidas") return { ...base,
+    titulo:"Lo que salió", valor:kpi.salidas,
+    formula:"Compras a proveedor  +  gastos fijos del periodo",
+    pasos: Object.entries(kpi._categorias).filter(([,v]) => v > 0)
+      .sort((a,b) => b[1]-a[1])
+      .map(([k,v]) => ({ etiqueta:{proveedores:"Proveedores",renta:"Renta",servicios:"Luz, gas y agua",otros:"Otros gastos"}[k], valor:v }))
+      .concat([{ etiqueta:"Total", valor:kpi.salidas, total:true }]),
+    fuente:[FUENTE_COMPRAS, FUENTE_GASTOS],
+    significado:"Todo el dinero que salió: mercancía de proveedores más los gastos fijos del local.",
+    ojo:"La renta y los servicios se cobran una vez al mes. Aquí se reparten entre los días del mes para poder verlos en cualquier periodo — por eso el número diario es proporcional, no el recibo completo."
+  };
+
+  if (clave === "tickets") return { ...base,
+    titulo:"Tickets", valor:tk.tickets, entero:true,
+    formula:"Suma de num_tickets de cada día",
+    pasos:[
+      { etiqueta:"Cuentas cerradas", valor:tk.tickets, entero:true },
+      { etiqueta:"Ticket promedio", valor:tk.ticket_promedio, total:true }
+    ],
+    fuente:[FUENTE_VENTAS],
+    significado:"Cuántas cuentas se cerraron. Junto con el ticket promedio te dice si vendiste más porque vino más gente o porque cada quien gastó más.",
+    ojo:"Un ticket promedio que sube con menos gente puede significar que perdiste clientes de menor consumo."
+  };
+
+  if (clave === "gauge"){
+    const pct = kpi.ingresos > 0 ? kpi.balance / kpi.ingresos * 100 : 0;
+    return { ...base,
+      titulo:"De cada $100 que entró", valor:kpi.balance, porcentaje:Math.round(pct),
+      formula:"Balance ÷ Ventas × 100",
+      pasos:[
+        { etiqueta:"Entró", valor:kpi.ingresos },
+        { etiqueta:"Salió", valor:-kpi.salidas },
+        { etiqueta:"Quedó", valor:kpi.balance, total:true }
+      ],
+      fuente:[FUENTE_VENTAS, FUENTE_COMPRAS, FUENTE_GASTOS],
+      significado:"El porcentaje de cada peso vendido que sobrevive después de pagar mercancía y gastos fijos. Es el indicador que dispara el semáforo.",
+      ojo:"Umbrales actuales: sano desde " + Math.round(UMBRALES.sano*100) + "%, vigilar desde " +
+          Math.round(UMBRALES.alarma*100) + "%, abajo de eso atender hoy. Son valores sugeridos, pendientes de que Dani los apruebe."
+    };
+  }
+
+  if (clave.startsWith("metodo:")){
+    const k = clave.slice(7);
+    const nombre = {efectivo:"Efectivo",tarjeta:"Tarjeta",transferencia:"Transferencia",delivery_apps:"Apps de reparto"}[k];
+    const v = kpi._metodos[k] || 0;
+    const notas = {
+      efectivo:"El efectivo es el que más se puede perder entre la caja y el banco. Cuando exista el corte de caja podrás comparar esto contra lo que realmente se entregó.",
+      tarjeta:"La terminal deposita con retraso y cobra comisión, así que este monto no es lo que verás en el banco.",
+      transferencia:"Suele ser evento, reservación o cliente grande.",
+      delivery_apps:"Las apps descuentan su comisión antes de depositar. Lo que ves aquí es venta, no depósito."
+    };
+    return { ...base, titulo:nombre, valor:v,
+      formula:"Suma de por_metodo_pago." + k,
+      pasos:[
+        { etiqueta:nombre, valor:v },
+        { etiqueta:"Total del periodo", valor:kpi.ingresos },
+        { etiqueta:"Representa", valor: kpi.ingresos > 0 ? Math.round(v/kpi.ingresos*100) : 0, pct:true, total:true }
+      ],
+      fuente:[FUENTE_VENTAS],
+      significado:"Parte de la venta cobrada por este medio.",
+      ojo:notas[k]
+    };
+  }
+
+  if (clave.startsWith("categoria:")){
+    const k = clave.slice(10);
+    const nombre = {proveedores:"Proveedores",renta:"Renta",servicios:"Luz, gas y agua",otros:"Otros gastos"}[k];
+    const v = kpi._categorias[k] || 0;
+    const notas = {
+      proveedores:"Mercancía. Es el gasto que más se mueve y el que más se puede controlar. Una compra fuera de lo normal dispara alerta sola.",
+      renta:"Gasto fijo mensual, repartido entre los días del periodo.",
+      servicios:"Luz, gas y agua. Mensuales y prorrateados; el gas suele pagarse en efectivo.",
+      otros:"Gastos fijos que no caen en las demás categorías."
+    };
+    return { ...base, titulo:nombre, valor:v,
+      formula: k === "proveedores" ? "Suma de compra_proveedor.monto del periodo"
+                                   : "Gasto mensual ÷ días del mes × días del periodo",
+      pasos:[
+        { etiqueta:nombre, valor:v },
+        { etiqueta:"Total que salió", valor:kpi.salidas },
+        { etiqueta:"Representa", valor: kpi.salidas > 0 ? Math.round(v/kpi.salidas*100) : 0, pct:true, total:true }
+      ],
+      fuente: k === "proveedores" ? [FUENTE_COMPRAS] : [FUENTE_GASTOS],
+      significado:"Parte del dinero que salió por este concepto.",
+      ojo:notas[k]
+    };
+  }
+
+  if (clave === "estado") return { ...base,
+    titulo:"Estado: " + {sano:"Sano",alarma:"Vigilar",critico:"Atender hoy"}[kpi.estado_general],
+    valor:kpi.balance,
+    formula:"Se compara Balance ÷ Ventas contra los umbrales",
+    pasos:[
+      { etiqueta:"Sano · desde", valor:Math.round(UMBRALES.sano*100), pct:true },
+      { etiqueta:"Vigilar · desde", valor:Math.round(UMBRALES.alarma*100), pct:true },
+      { etiqueta:"Tu porcentaje", valor: kpi.ingresos > 0 ? Math.round(kpi.balance/kpi.ingresos*100) : 0, pct:true, total:true }
+    ],
+    fuente:["Regla del sistema · UMBRALES"],
+    significado:"El semáforo no opina: compara un número contra un límite que tú defines.",
+    ojo:"Estos límites son una propuesta inicial. En cuanto los ajustes a tu negocio, el semáforo cambia con ellos."
+  };
+
+  return null;
+}
+
+
+
+/* ▼▼ BLOQUE: LOGIC-SECCIONES ▼▼
+   Alimenta Sucursales, Alertas y Reportes con datos reales.
+   Funciones puras. No modifican nada existente.
+   ══════════════════════════════════════════════════════════════════ */
+
+/** Explicación de un día concreto: lo que abre una alerta al tocarla. */
+function explicarDia(data, sucursal_id, fecha){
+  const r = { desde:fecha, hasta:fecha, dias:1 };
+  const ing = agregarIngresos(data.venta_diaria, sucursal_id, r);
+  const sal = agregarSalidas(data.compra_proveedor, data.gasto, sucursal_id, r);
+  const balance = ing.total - sal.total;
+  const suc = SUCURSALES.find(x => x.sucursal_id === sucursal_id);
+  const compras = data.compra_proveedor
+    .filter(c => c.sucursal_id === sucursal_id && c.fecha === fecha)
+    .sort((a,b) => b.monto - a.monto)
+    .map(c => ({ etiqueta:c.proveedor, valor:c.monto }));
+  let suma = 0;
+  for (let i = 1; i <= 30; i++) suma += salidasDelDia(data, sucursal_id, diaISO(fecha, -i));
+  const prom = suma / 30;
+  const exceso = prom > 0 ? Math.round((sal.total / prom - 1) * 100) : 0;
+  const f = new Date(fecha + "T12:00:00").toLocaleDateString("es-MX", { weekday:"long", day:"numeric", month:"long" });
+  return {
+    alcance: suc.nombre, periodo: f.charAt(0).toUpperCase() + f.slice(1),
+    titulo: balance < 0 ? "Ese día salió más de lo que entró" : "Qué pasó ese día",
+    valor: balance,
+    formula: "Ventas del día  −  compras y gastos del día",
+    pasos: [{ etiqueta:"Entró", valor:ing.total },
+            { etiqueta:"Salió", valor:-sal.total },
+            { etiqueta:"Balance del día", valor:balance, total:true }],
+    detalle: compras.length ? { titulo:"Compras de ese día", filas:compras } : null,
+    fuente: [FUENTE_VENTAS, FUENTE_COMPRAS, FUENTE_GASTOS],
+    significado: balance < 0
+      ? "Ese día se pagó más mercancía y gastos de lo que se vendió. Casi siempre es una compra grande que cayó en un día de venta baja, no una pérdida del negocio."
+      : "Desglose de ese día en particular.",
+    ojo: prom > 0 ? "Las salidas de ese día fueron " +
+      (exceso >= 0 ? exceso + "% arriba" : Math.abs(exceso) + "% abajo") +
+      " del promedio diario de los 30 días previos." : null
+  };
+}
+
+/** Historial completo de alertas de todas las sucursales. */
+function historialAlertas(data, periodo){
+  const t = [];
+  SUC_ACTIVAS.forEach(s => detectarAlertas(data, s.sucursal_id, periodo)
+    .forEach(a => t.push({ ...a, id:s.sucursal_id + "_" + a.id, sucursal:s.nombre, sucursal_id:s.sucursal_id })));
+  const peso = { critico:0, alarma:1 };
+  return t.sort((a,b) => peso[a.estado] - peso[b.estado] || b.fecha.localeCompare(a.fecha));
+}
+
+/** Tabla comparativa de todas las sucursales operando. */
+function tablaSucursales(data, periodo){
+  return SUC_ACTIVAS.map(s => {
+    const k = calcularKPI(data, s.sucursal_id, periodo, false);
+    const p = calcularKPI(data, s.sucursal_id, periodo, true);
+    const t = agregarTickets(data.venta_diaria, s.sucursal_id, rangoPeriodo(periodo, false));
+    return { ...s, ingresos:k.ingresos, salidas:k.salidas, balance:k.balance,
+      estado:k.estado_general, margen: k.ingresos > 0 ? k.balance / k.ingresos * 100 : 0,
+      delta: variacion(k.balance, p.balance), tickets:t.tickets, ticket_promedio:t.ticket_promedio,
+      alertas: detectarAlertas(data, s.sucursal_id, periodo).length };
+  }).sort((a,b) => b.balance - a.balance);
+}
+
+/** Resumen legible para Reportes: sin jerga, listo para leer o compartir. */
+function resumenTexto(data, id, periodo){
+  const k = kpiDe(data, id, periodo, false);
+  const p = kpiDe(data, id, periodo, true);
+  const t = ticketsDe(data, id, rangoPeriodo(periodo, false));
+  const nom = esGrupo(id) ? "el grupo" : SUCURSALES.find(s => s.sucursal_id === id).nombre;
+  const per = { hoy:"hoy", semana:"esta semana", mes:"este mes" }[periodo];
+  const v = variacion(k.balance, p.balance);
+  const est = { sano:"va bien", alarma:"hay que vigilarlo", critico:"necesita atención hoy" }[k.estado_general];
+  const alertas = alertasDe(data, id, periodo);
+  return {
+    titulo: "Resumen de " + nom + " · " + per,
+    lineas: [
+      "Entró: " + k.ingresos,
+      "Salió: " + k.salidas,
+      "Quedó: " + k.balance,
+      "De cada $100 que entró se quedaron " + (k.ingresos > 0 ? Math.round(k.balance/k.ingresos*100) : 0),
+      "Cuentas cerradas: " + t.tickets + " · promedio por cuenta: " + t.ticket_promedio
+    ],
+    veredicto: "En resumen: " + est + ".",
+    cambio: v === null ? null : (v >= 0 ? "Mejor" : "Peor") + " que el periodo anterior en " + Math.abs(Math.round(v)) + "%.",
+    alertas: alertas.map(a => a.titulo + (a.sucursal ? " (" + a.sucursal + ")" : "")),
+    estado: k.estado_general
+  };
+}
+
+/** Texto plano para compartir por WhatsApp. Sin archivos, sin CSV. */
+function textoCompartible(data, id, periodo){
+  const r = resumenTexto(data, id, periodo);
+  const m = (n) => "$" + Math.round(n).toLocaleString("es-MX");
+  const k = kpiDe(data, id, periodo, false);
+  const t = ticketsDe(data, id, rangoPeriodo(periodo, false));
+  let txt = r.titulo + "\n\n";
+  txt += "Entró: " + m(k.ingresos) + "\n";
+  txt += "Salió: " + m(k.salidas) + "\n";
+  txt += "Quedó: " + m(k.balance) + "\n";
+  txt += "Cuentas: " + t.tickets + "\n\n";
+  txt += r.veredicto + "\n";
+  if (r.cambio) txt += r.cambio + "\n";
+  if (r.alertas.length) txt += "\nPendientes:\n" + r.alertas.map(a => "- " + a).join("\n") + "\n";
+  txt += "\n(Datos de ejemplo · Centro de Control)";
+  return txt;
+}
+/* ▲▲ FIN: LOGIC-SECCIONES ▲▲ */
+
+/* ▼▼ BLOQUE: RENDER ▼▼ */
+/* ══════════════════════════════════════════════════════════════════════
+   ══ RENDER ══
+   Consume kpi_consolidado, serieFlujo, agregarTickets y detectarAlertas.
+   No recalcula. No toca DATA.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const mxn = new Intl.NumberFormat("es-MX", { style:"currency", currency:"MXN", maximumFractionDigits:0 });
+const fmt = (n) => mxn.format(Math.round(n));
+const ent = new Intl.NumberFormat("es-MX");
+const kfmt = (n) => Math.abs(n) >= 1000 ? "$" + Math.round(n/1000) + "k" : "$" + Math.round(n);
+
+const ETIQUETA_METODO = { efectivo:"Efectivo", tarjeta:"Tarjeta", transferencia:"Transferencia", delivery_apps:"Apps de reparto" };
+const ETIQUETA_CATEGORIA = { proveedores:"Proveedores", renta:"Renta", servicios:"Luz, gas y agua", otros:"Otros gastos" };
+const COLOR_METODO = { "Efectivo":"#34D964", "Tarjeta":"#2CC0D8", "Transferencia":"#FFA228", "Apps de reparto":"#7C8AA5" };
+const COLOR_CATEGORIA = { "Proveedores":"#FF4438", "Renta":"#FF7A3D", "Luz, gas y agua":"#FFA228", "Otros gastos":"#7C8AA5" };
+const ETIQUETA_PERIODO = { hoy:"de hoy", semana:"de la semana", mes:"del mes" };
+const TEXTO_ESTADO = { sano:"Sano", alarma:"Vigilar", critico:"Atender hoy" };
+const COMPARATIVO = { hoy:"vs. ayer", semana:"vs. semana pasada", mes:"vs. mes pasado" };
+
+const DESTINOS = [
+  { id:"inicio",     nombre:"Inicio",         corto:"Inicio",   f2:false, icono:'<path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/>' },
+  { id:"cortes",     nombre:"Cortes de caja", corto:"Cortes",   f2:true,  icono:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M8 15h3"/>' },
+  { id:"sucursales", nombre:"Sucursales",     corto:"Sucursal", f2:true,  icono:'<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>' },
+  { id:"alertas",    nombre:"Alertas",        corto:"Alertas",  f2:true,  icono:'<path d="M12 3a6 6 0 0 0-6 6c0 4-2 5-2 5h16s-2-1-2-5a6 6 0 0 0-6-6z"/><path d="M10.5 20a1.9 1.9 0 0 0 3 0"/>' },
+  { id:"reportes",   nombre:"Reportes",       corto:"Reportes", f2:true,  icono:'<path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M8 13h8M8 17h5"/>' }
+];
+const ico = (d,n) => `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+
+function icoEstado(e, n){
+  n = n || 13;
+  if (e === "sano")   return `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`;
+  if (e === "alarma") return `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4L2.5 20h19z"/><path d="M12 10v4M12 17.4v.1"/></svg>`;
+  return `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16.2v.1"/></svg>`;
+}
+const F_UP   = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+const F_DOWN = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>';
+const CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
+const CHECK_F2 = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* Arranca en el consolidado: Dani ve primero el grupo, luego baja al detalle. */
+const ui = { periodo:"hoy", sucursal:GRUPO_ID, vista:"inicio" };
+
+/* Count-up con easing largo: la cifra "sube" en vez de aparecer. */
+function countUp(el, valor, formato){
+  const f = formato || fmt;
+  if (reduceMotion){ el.textContent = f(valor); return; }
+  const dur = 900, t0 = performance.now(), s = valor < 0 ? -1 : 1, abs = Math.abs(valor);
+  (function paso(t){
+    const p = Math.min(1, ((t || t0) - t0) / dur);
+    el.textContent = f(s * abs * (1 - Math.pow(1 - p, 4)));
+    if (p < 1) requestAnimationFrame(paso); else el.textContent = f(valor);
+  })(t0);
+}
+
+function htmlDelta(pct, absoluto, invertir){
+  if (pct === null) return "";
+  const sube = pct >= 0;
+  const dir = (invertir ? !sube : sube) ? "up" : "down";
+  const mag = Math.abs(pct) > 200 ? fmt(Math.abs(absoluto)) : Math.abs(pct).toFixed(0) + "%";
+  return `<span class="delta" data-dir="${dir}">${sube ? F_UP : F_DOWN}<b>${mag}</b> ${COMPARATIVO[ui.periodo]}</span>`;
+}
+
+/* Entrada escalonada: la pantalla se arma de arriba a abajo. */
+function escalonar(){
+  if (reduceMotion) return;
+  $$("#v-inicio .kpi, #v-inicio .al, #v-inicio .card, #v-inicio .fase1").forEach((el, i) => {
+    el.classList.remove("rise");
+    void el.offsetWidth;
+    el.style.animationDelay = Math.min(i * 45, 520) + "ms";
+    el.classList.add("rise");
+  });
+}
+
+/* — KPIs — */
+function pintarKPIs(kpi, prev, tk, tkPrev){
+  const defs = [
+    { t:"balance", lbl:"Balance", val:kpi.balance,  prev:prev.balance,   inv:false },
+    { t:"entra",   lbl:"Entró",   val:kpi.ingresos, prev:prev.ingresos,  inv:false },
+    { t:"sale",    lbl:"Salió",   val:kpi.salidas,  prev:prev.salidas,   inv:true  },
+    { t:"tickets", lbl:"Tickets", val:tk.tickets,   prev:tkPrev.tickets, inv:false, e:true }
+  ];
+  $("#kpis").innerHTML = defs.map(d => `
+    <article class="kpi" data-t="${d.t}" data-drill="${d.t === "entra" ? "ingresos" : d.t === "sale" ? "salidas" : d.t}">
+      <span class="drill-hint">?</span>
+      <div class="lbl">${d.lbl}</div>
+      <div class="kpi-c" data-v="${d.val}"${d.e ? ' data-ent="1"' : ''}>—</div>
+      <div class="kpi-d">${htmlDelta(variacion(d.val, d.prev), d.val - d.prev, d.inv)}</div>
+    </article>`).join("");
+  $$("#kpis .kpi-c").forEach(el =>
+    countUp(el, +el.dataset.v, el.dataset.ent ? (n)=>ent.format(Math.round(n)) : fmt));
+}
+
+/* — Alertas (calculadas en LOGIC) — */
+function pintarAlertas(alertas){
+  const cont = $("#alertas");
+  if (!alertas.length){
+    cont.innerHTML = `<div class="al" data-e="sano">
+      <span class="al-ic">${icoEstado("sano",15)}</span>
+      <div><div class="al-t">Sin alertas</div><div class="al-d">Todo dentro de lo normal en este periodo.</div></div>
+    </div>`;
+    return;
+  }
+  cont.innerHTML = alertas.map(a => {
+    let d = a.detalle;
+    if (a._tipo === "monto")     d = `Salieron <span class="num">${fmt(a._monto)}</span> más de lo que entró`;
+    if (a._tipo === "monto_pct") d = `<span class="num">${fmt(a._monto)}</span> · ${a.detalle}`;
+    return `<div class="al" data-e="${a.estado}">
+      <span class="al-ic">${icoEstado(a.estado,15)}</span>
+      <div><div class="al-t">${a.titulo}</div><div class="al-d">${d}</div></div>
+      <span class="al-ch">${CHEVRON}</span></div>`;
+  }).join("");
+}
+
+/* — Gauge — */
+const ARCO = Math.PI * 92;
+function pintarGauge(kpi){
+  const fill = $("#gFill");
+  const neg = kpi.balance < 0;
+  const pct = neg || kpi.ingresos <= 0 ? 0 : Math.min(100, kpi.balance / kpi.ingresos * 100);
+  fill.style.strokeDasharray = ARCO;
+  fill.style.stroke = `var(--${kpi.estado_general})`;
+  if (reduceMotion) fill.style.strokeDashoffset = ARCO * (1 - pct/100);
+  else {
+    fill.style.strokeDashoffset = ARCO;
+    setTimeout(() => { fill.style.strokeDashoffset = ARCO * (1 - pct/100); }, 120);
+  }
+  const p = $("#gPct");
+  p.style.fill = neg ? "var(--critico)" : "var(--ink)";
+  if (reduceMotion) p.textContent = Math.round(pct) + "%";
+  else countUp(p, pct, (n) => Math.round(n) + "%");
+
+  $("#gLey").innerHTML = neg
+    ? `Salió más de lo que entró. Por cada $100 de venta se fueron <b>${fmt(kpi.salidas / kpi.ingresos * 100)}</b>.`
+    : `De cada $100 que entró, te quedaron <b>${fmt(Math.round(pct))}</b>.`;
+}
+
+/* ── GRÁFICA DE FLUJO — dos áreas + líneas, trazo animado ────────────── */
+function pintarFlujo(serie){
+  const svg = $("#flujoSvg"), card = $("#cFlujo");
+  const W = 600, H = 200, mL = 42, mR = 10, mT = 12, mB = 24;
+  const iw = W - mL - mR, ih = H - mT - mB;
+  const max = Math.max(...serie.map(d => Math.max(d.ingresos, d.salidas)), 1);
+  const techo = Math.ceil(max / 20000) * 20000;
+
+  const x = (i) => mL + (serie.length === 1 ? iw/2 : i * iw / (serie.length - 1));
+  const y = (v) => mT + ih - (v / techo) * ih;
+
+  const linea = (campo) => serie.map((d,i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(d[campo]).toFixed(1)}`).join(" ");
+  const area  = (campo) => linea(campo) + ` L${x(serie.length-1).toFixed(1)},${mT+ih} L${x(0).toFixed(1)},${mT+ih} Z`;
+
+  /* Rejilla horizontal en 4 pasos */
+  let grid = "";
+  for (let g = 0; g <= 4; g++){
+    const v = techo * g / 4, yy = y(v);
+    grid += `<line class="fx-grid" x1="${mL}" y1="${yy.toFixed(1)}" x2="${W-mR}" y2="${yy.toFixed(1)}"/>
+             <text class="fx-lbl" x="${mL-8}" y="${(yy+3.5).toFixed(1)}" text-anchor="end">${kfmt(v)}</text>`;
+  }
+
+  const fDia = (iso) => new Date(iso+"T12:00:00").toLocaleDateString("es-MX",{day:"numeric",month:"short"});
+  const ejeX = `<text class="fx-lbl" x="${mL}" y="${H-6}">${fDia(serie[0].fecha)}</text>
+                <text class="fx-lbl" x="${W-mR}" y="${H-6}" text-anchor="end">${fDia(serie[serie.length-1].fecha)}</text>`;
+
+  const ultimo = serie[serie.length-1];
+
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="gIn" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#34D964" stop-opacity=".34"/>
+        <stop offset="100%" stop-color="#34D964" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="gOut" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FF4438" stop-opacity=".30"/>
+        <stop offset="100%" stop-color="#FF4438" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${grid}${ejeX}
+    <path class="fx-area a-in" d="${area("ingresos")}" fill="url(#gIn)"/>
+    <path class="fx-area a-in" d="${area("salidas")}"  fill="url(#gOut)"/>
+    <path class="fx-line" id="lnOut" d="${linea("salidas")}"  stroke="#FF4438"/>
+    <path class="fx-line" id="lnIn"  d="${linea("ingresos")}" stroke="#34D964"/>
+    <circle class="fx-dot" cx="${x(serie.length-1)}" cy="${y(ultimo.salidas)}"  r="4" fill="#FF4438" stroke="var(--card)" stroke-width="2"/>
+    <circle class="fx-dot" cx="${x(serie.length-1)}" cy="${y(ultimo.ingresos)}" r="4" fill="#34D964" stroke="var(--card)" stroke-width="2"/>`;
+
+  /* Trazo animado: la línea se dibuja de izquierda a derecha. */
+  card.classList.remove("on");
+  ["lnIn","lnOut"].forEach(id => {
+    const p = svg.querySelector("#" + id);
+    const L = p.getTotalLength ? p.getTotalLength() : 1000;
+    p.style.strokeDasharray = L;
+    p.style.strokeDashoffset = reduceMotion ? 0 : L;
+  });
+  requestAnimationFrame(() => {
+    card.classList.add("on");
+    if (!reduceMotion) ["lnIn","lnOut"].forEach(id => { svg.querySelector("#"+id).style.strokeDashoffset = 0; });
+  });
+}
+
+/* ── BARRAS GRUESAS con el monto dentro (patrón Tiller) ─────────────── */
+function pintarBarras(sel, datos, total, colores, prefijo, inverso){
+  const el = $(sel);
+  el.innerHTML = "";
+  el.classList.remove("on");
+  const entradas = Object.entries(datos).sort((a,b) => b[1] - a[1]);
+  const mayor = entradas.length ? entradas[0][1] : 1;
+
+  entradas.forEach(([clave, valor], i) => {
+    /* El ancho es relativo al mayor, no al total: si no, todo se ve chiquito. */
+    const w = mayor > 0 ? valor / mayor * 100 : 0;
+    const pct = total > 0 ? valor / total * 100 : 0;
+    const fuera = w < 34;   /* barra muy corta: el monto va afuera */
+    const row = document.createElement("div");
+    row.className = "bar-row";
+    row.dataset.drill = prefijo + ":" + (inverso[clave] || clave);
+    row.innerHTML = `
+      <div class="bar-top"><span class="bar-n">${clave}</span><span class="bar-p">${pct.toFixed(0)}%</span></div>
+      <div class="bar-track">
+        <div class="bar-fill" style="background:${colores[clave] || "#7C8AA5"}">
+          ${fuera ? "" : `<span class="bar-v">${fmt(valor)}</span>`}
+        </div>
+        ${fuera ? `<span class="bar-v fuera" style="--w:${w}%;position:absolute;top:50%;transform:translateY(-50%)">${fmt(valor)}</span>` : ""}
+      </div>`;
+    el.appendChild(row);
+    const fill = row.querySelector(".bar-fill");
+    setTimeout(() => { fill.style.width = w + "%"; }, reduceMotion ? 0 : 60 + i * 90);
+  });
+  requestAnimationFrame(() => el.classList.add("on"));
+}
+
+/* — Día por día — */
+function pintarTendencia(serie){
+  const chart = $("#trend");
+  chart.querySelectorAll(".tcol").forEach(n => n.remove());
+  const maxPos = Math.max(0, ...serie.map(d => d.balance));
+  const maxNeg = Math.abs(Math.min(0, ...serie.map(d => d.balance)));
+  const escala = Math.max(maxPos, maxNeg, 1);
+  const zonaPos = maxNeg > 0 ? (maxPos / (maxPos + maxNeg)) * 100 : 100;
+  chart.style.setProperty("--zero", zonaPos + "%");
+  const fDia = (iso) => new Date(iso+"T12:00:00").toLocaleDateString("es-MX",{weekday:"short",day:"numeric",month:"short"});
+
+  serie.forEach((d, i) => {
+    const col = document.createElement("div");
+    col.className = "tcol";
+    if (d.esHoy) col.dataset.hoy = "1";
+    col.innerHTML = `<div class="tip">${fDia(d.fecha)}<b>${fmt(d.balance)}</b></div>
+      <div class="tp" style="height:${zonaPos}%"><span class="tbar tbar-p"></span></div>
+      <div class="tn" style="height:${100-zonaPos}%"><span class="tbar tbar-n"></span></div>`;
+    chart.appendChild(col);
+    const alto = Math.abs(d.balance) / escala * 100;
+    const zona = d.balance >= 0 ? (maxPos / escala) : (maxNeg / escala);
+    setTimeout(() => {
+      col.querySelector(d.balance >= 0 ? ".tbar-p" : ".tbar-n").style.height =
+        Math.min(100, zona > 0 ? alto / zona : 0) + "%";
+    }, reduceMotion ? 0 : i * 22);
+  });
+
+  const f = (iso) => new Date(iso+"T12:00:00").toLocaleDateString("es-MX",{day:"numeric",month:"short"});
+  $("#trA").textContent = f(serie[0].fecha);
+  $("#trB").textContent = f(serie[serie.length-1].fecha);
+  $("#trRango").textContent = serie.length + " días";
+}
+
+function pintarSucursales(){
+  const row = $("#sucRow");
+  row.innerHTML = "";
+  estadosCatalogo(DATA, ui.periodo).forEach(s => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "suc";
+    b.dataset.e = s.estado;
+    b.setAttribute("aria-pressed", String(s.sucursal_id === ui.sucursal));
+    b.innerHTML = `<span class="lamp" data-e="${s.estado}"></span>${s.nombre}` +
+                  (s.activa ? `<span class="suc-z">${s.zona}</span>`
+                            : `<span class="tag-f2" style="margin-left:4px">FASE 2</span>`);
+    b.addEventListener("click", () => {
+      if (!s.activa){ toast(s.nombre + " abre en Fase 2"); return; }
+      ui.sucursal = s.sucursal_id; render(true);
+    });
+    row.appendChild(b);
+  });
+}
+
+/* Comparativa entre sucursales. Solo tiene sentido en el consolidado;
+   el MENÚ no cambia — solo aparece una tarjeta más. */
+function pintarComparativa(kpi){
+  const card = $("#cCmp");
+  if (!kpi._porSucursal){ card.hidden = true; return; }
+  card.hidden = false;
+  const mayor = Math.max(...kpi._porSucursal.map(s => Math.abs(s.balance)), 1);
+  $("#cmpX").textContent = kpi._porSucursal.length + " operando";
+  const cont = $("#cmp");
+  cont.innerHTML = "";
+  kpi._porSucursal.forEach((s, i) => {
+    const r = document.createElement("div");
+    r.className = "cmp-row";
+    r.innerHTML = `
+      <span class="lamp" data-e="${s.estado}"></span>
+      <div>
+        <div class="cmp-n">${s.nombre} <span class="cmp-z">· ${s.zona}</span></div>
+        <div class="cmp-track" style="margin-top:6px"><span class="cmp-fill" style="background:var(--${s.estado})"></span></div>
+      </div>
+      <span class="cmp-v" style="color:${s.balance < 0 ? "var(--critico)" : "var(--ink)"}">${fmt(s.balance)}</span>`;
+    r.addEventListener("click", () => { ui.sucursal = s.sucursal_id; render(true); });
+    cont.appendChild(r);
+    setTimeout(() => { r.querySelector(".cmp-fill").style.width =
+      (Math.abs(s.balance) / mayor * 100) + "%"; }, reduceMotion ? 0 : 80 + i * 70);
+  });
+}
+
+let toastT;
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove("on"), 2600);
+}
+
+/* ══════════════ FASE 2 — estructura real, inerte ══════════════ */
+const BLK = (n) => `<span class="blk">${"▓".repeat(n)}</span>`;
+const ESQUELETOS = {
+  cortes: () => `
+    <div class="f2-card">
+      <div class="f2-h"><span class="f2-t">Cortes del día</span><span class="blk">▓▓▓▓</span></div>
+      <table class="f2-tabla">
+        <thead><tr><th>Turno</th><th>Venta sistema</th><th>Entregado</th><th>Diferencia</th></tr></thead>
+        <tbody>${["Turno de desayuno","Turno de comida","Turno de cena"].map(t =>
+          `<tr><td>${t}</td><td>${BLK(6)}</td><td>${BLK(6)}</td><td>${BLK(5)}</td></tr>`).join("")}</tbody>
+      </table>
+    </div>
+    <div class="f2-card">
+      <div class="f2-h"><span class="f2-t">Diferencias de la semana</span></div>
+      <div class="f2-chart">${[40,62,35,70,48,80,55].map(h=>`<span style="height:${h}%"></span>`).join("")}</div>
+    </div>`,
+  sucursales: () => `
+    <div class="f2-grid3">${["Sucursal 1","Sucursal 2","Sucursal 3"].map(s => `
+      <div class="f2-card">
+        <div class="f2-h"><span class="f2-t">${s}</span><span class="f2-dot"></span></div>
+        <div style="padding:14px 15px">
+          <div style="font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)">Balance</div>
+          <div style="margin-top:6px">${BLK(8)}</div>
+          <div class="f2-bar" style="margin-top:12px"></div>
+          <div class="f2-bar" style="margin-top:7px;width:70%"></div>
+        </div>
+      </div>`).join("")}</div>
+    <div class="f2-card">
+      <div class="f2-h"><span class="f2-t">Consolidado del grupo</span></div>
+      <table class="f2-tabla">
+        <thead><tr><th>Razón social</th><th>Entró</th><th>Salió</th><th>Balance</th></tr></thead>
+        <tbody>${["Razón social A","Razón social B","Razón social C"].map(r =>
+          `<tr><td>${r}</td><td>${BLK(6)}</td><td>${BLK(6)}</td><td>${BLK(6)}</td></tr>`).join("")}</tbody>
+      </table>
+    </div>`,
+  alertas: () => `
+    <div class="f2-card">
+      <div class="f2-h"><span class="f2-t">Bandeja de alertas</span><span class="blk">▓▓▓</span></div>
+      <div class="f2-lista">${["Caja sin cerrar","Venta por debajo de lo normal","Compra fuera de rango","Balance negativo","Corte con diferencia"].map(a => `
+        <div class="f2-li"><span class="f2-dot"></span>
+          <div style="flex:1"><div style="font-size:12.5px;color:var(--ink-2)">${a}</div><div style="margin-top:3px">${BLK(10)}</div></div>
+          <span class="blk">▓▓▓</span></div>`).join("")}</div>
+    </div>
+    <div class="f2-card">
+      <div class="f2-h"><span class="f2-t">Reglas configurables</span></div>
+      <div style="padding:15px;display:flex;flex-direction:column;gap:12px">
+        ${["Umbral de balance","Umbral de compra","Caída de venta"].map(r => `
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="flex:1;font-size:12.5px;color:var(--ink-2)">${r}</span>
+            <span class="f2-bar" style="width:120px"></span><span class="blk">▓▓▓</span></div>`).join("")}
+      </div>
+    </div>`,
+  reportes: () => `
+    <div class="f2-card">
+      <div class="f2-h"><span class="f2-t">Periodo</span><span class="blk">▓▓▓▓▓▓</span></div>
+      <div class="f2-lista">${["Reporte de entradas y salidas","Reporte de cortes de caja","Reporte por razón social","Reporte por método de pago","Reporte de proveedores"].map(r => `
+        <div class="f2-li"><span class="f2-dot"></span>
+          <span style="flex:1;font-size:12.5px;color:var(--ink-2)">${r}</span>
+          <span class="blk">▓▓▓</span></div>`).join("")}</div>
+    </div>
+    <div class="f2-card">
+      <div class="f2-h"><span class="f2-t">Envío programado</span></div>
+      <div style="padding:15px;display:flex;gap:10px;flex-wrap:wrap">
+        ${["Excel","PDF","Correo"].map(x => `<span style="padding:7px 14px;border:1px dashed var(--fase2-line);border-radius:6px;font-size:12px;color:var(--ink-3)">${x}</span>`).join("")}
+      </div>
+    </div>`
+};
+const PANELES = {
+  cortes:{ t:"Cortes de caja", d:"Compara lo que vendió el sistema contra lo que se entregó en cada turno.",
+    b:["Venta vs. entregado por turno","Diferencia en pesos","Alerta automática cuando no cuadra"] },
+  sucursales:{ t:"Sucursales", d:"Las tres razones sociales en un solo total.",
+    b:["Consolidado del grupo","Comparativa lado a lado","Semáforo por sucursal"] },
+  alertas:{ t:"Alertas", d:"Historial completo y reglas configurables.",
+    b:["Bandeja con historial","Umbrales que tú defines","Aviso a WhatsApp"] },
+  reportes:{ t:"Reportes", d:"El mes cerrado listo para tu contador.",
+    b:["Exportar a Excel y PDF","Corte por razón social","Envío programado"] }
+};
+/* Solo Cortes sigue en Fase 2: necesita el dato de cuánto se entregó
+   por turno, que hoy nadie captura. */
+function montarFase2(){
+  ["cortes"].forEach(id => {
+    const p = PANELES[id];
+    $("#v-" + id).innerHTML = `<div class="f2">
+      <div class="f2-skel" aria-hidden="true">${ESQUELETOS[id]()}</div>
+      <div class="f2-panel"><div class="f2-box">
+        <span class="f2-badge">FASE 2</span>
+        <h2 class="f2-title">${p.t}</h2>
+        <p class="f2-desc">${p.d}</p>
+        <ul class="f2-ul">${p.b.map(x => `<li>${CHECK_F2}<span>${x}</span></li>`).join("")}</ul>
+      </div></div></div>`;
+  });
+}
+
+/* — Navegación — */
+function montarNav(){
+  const side = $("#sideNav"), bn = $("#bnav");
+  side.innerHTML = ""; bn.innerHTML = "";
+  DESTINOS.forEach(d => {
+    const a = document.createElement("button");
+    a.type="button"; a.className="side-item"; a.dataset.v=d.id;
+    if (d.f2) a.dataset.f2 = "1";
+    if (d.id === ui.vista) a.setAttribute("aria-current","page");
+    a.innerHTML = ico(d.icono,17) + `<span>${d.nombre}</span>` + (d.f2 ? '<span class="tag-f2">FASE 2</span>' : "");
+    a.addEventListener("click", () => irA(d.id));
+    side.appendChild(a);
+
+    const b = document.createElement("button");
+    b.type="button"; b.dataset.v=d.id;
+    if (d.f2) b.dataset.f2 = "1";
+    if (d.id === ui.vista) b.setAttribute("aria-current","page");
+    b.innerHTML = ico(d.icono,19) + `<span class="bn-l">${d.corto}</span>`;
+    b.addEventListener("click", () => irA(d.id));
+    bn.appendChild(b);
+  });
+}
+function irA(id){
+  ui.vista = id;
+  $$("[data-v]").forEach(x => x.dataset.v === id ? x.setAttribute("aria-current","page") : x.removeAttribute("aria-current"));
+  $$(".vista").forEach(v => v.classList.toggle("on-vista", v.id === "v-" + id));
+  const d = DESTINOS.find(x => x.id === id);
+  $("#tbSaludo").textContent = id === "inicio" ? "Hola, Dani" : d.nombre;
+  $("#ctrls").style.display = id === "cortes" ? "none" : "";
+  if (id === "cortes") $("#tbCtx").textContent = "Disponible en Fase 2";
+  else { actualizarContexto(); montarSecciones(); }
+  cerrarMenu();
+  window.scrollTo({ top:0, behavior: reduceMotion ? "auto" : "smooth" });
+}
+function actualizarContexto(){
+  const r = rangoPeriodo(ui.periodo, false);
+  const nom = nombreAlcance();
+  const f = (iso, o) => new Date(iso+"T12:00:00").toLocaleDateString("es-MX", o);
+  const t = ui.periodo === "hoy"
+    ? f(r.hasta,{weekday:"long",day:"numeric",month:"long"})
+    : f(r.desde,{day:"numeric",month:"short"}) + " al " + f(r.hasta,{day:"numeric",month:"short"});
+  $("#tbCtx").textContent = t.charAt(0).toUpperCase() + t.slice(1) + " · " + nom;
+}
+const abrirMenu  = () => { $("#sidebar").classList.add("open"); $("#scrim").classList.add("on"); };
+const cerrarMenu = () => { $("#sidebar").classList.remove("open"); $("#scrim").classList.remove("on"); };
+
+/* Indicador deslizante del selector de periodo. */
+function moverIndicador(){
+  const b = $('#periodo button[aria-pressed="true"]'), ind = $("#segInd");
+  if (!b || !ind) return;
+  ind.style.left = b.offsetLeft + "px";
+  ind.style.width = b.offsetWidth + "px";
+}
+
+/* — Punto único de pintado — */
+function render(animar){
+  const kpi  = kpiDe(DATA, ui.sucursal, ui.periodo, false);
+  const prev = kpiDe(DATA, ui.sucursal, ui.periodo, true);
+  const tk     = ticketsDe(DATA, ui.sucursal, rangoPeriodo(ui.periodo, false));
+  const tkPrev = ticketsDe(DATA, ui.sucursal, rangoPeriodo(ui.periodo, true));
+  const dias = ui.periodo === "mes" ? 30 : (ui.periodo === "semana" ? 7 : 14);
+
+  actualizarContexto();
+  pintarKPIs(kpi, prev, tk, tkPrev);
+  pintarAlertas(alertasDe(DATA, ui.sucursal, ui.periodo));
+
+  $("#hero").dataset.e = kpi.estado_general;
+  $("#heroC").dataset.drill = "balance";
+  $("#heroE").dataset.drill = "estado";
+  $(".gauge-wrap").dataset.drill = "gauge";
+  $("#heroPer").textContent = ETIQUETA_PERIODO[ui.periodo];
+  if (animar) countUp($("#heroC"), kpi.balance); else $("#heroC").textContent = fmt(kpi.balance);
+  const e = $("#heroE");
+  e.dataset.e = kpi.estado_general;
+  e.innerHTML = icoEstado(kpi.estado_general) + TEXTO_ESTADO[kpi.estado_general];
+  $("#heroDWrap").innerHTML = htmlDelta(variacion(kpi.balance, prev.balance), kpi.balance - prev.balance, false);
+  $("#nConf").textContent = kpi.nota_confianza;
+
+  pintarGauge(kpi);
+  /* En "Hoy" la gráfica muestra 14 días de contexto: un solo punto no es una línea. */
+  pintarFlujo(serieFlujoDe(DATA, ui.sucursal, dias));
+
+  const metodos = {};
+  Object.entries(kpi._metodos).forEach(([k,v]) => { if (v > 0) metodos[ETIQUETA_METODO[k]] = v; });
+  pintarBarras("#barsIn", metodos, kpi.ingresos, COLOR_METODO, "metodo", INV_METODO);
+  $("#totIn").textContent = fmt(kpi.ingresos);
+
+  const categorias = {};
+  Object.entries(kpi._categorias).forEach(([k,v]) => { if (v > 0) categorias[ETIQUETA_CATEGORIA[k]] = v; });
+  pintarBarras("#barsOut", categorias, kpi.salidas, COLOR_CATEGORIA, "categoria", INV_CATEGORIA);
+  $("#totOut").textContent = fmt(kpi.salidas);
+
+  pintarTendencia(serieBalanceDe(DATA, ui.sucursal, ui.periodo === "mes" ? 30 : 7));
+  pintarComparativa(kpi);
+  pintarSucursales();
+  montarDrawerMovil();
+  if (ui.vista !== "inicio" && ui.vista !== "cortes") montarSecciones();
+  if (animar) escalonar();
+
+  $("#live").textContent = `Balance ${ETIQUETA_PERIODO[ui.periodo]}: ${fmt(kpi.balance)}. Estado ${TEXTO_ESTADO[kpi.estado_general]}.`;
+}
+
+/* — Eventos — */
+$("#periodo").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b || b.dataset.p === ui.periodo) return;
+  $$("#periodo button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  ui.periodo = b.dataset.p;
+  moverIndicador();
+  if (reduceMotion){ render(false); return; }
+  const v = $("#v-inicio");
+  v.classList.add("recalc");
+  setTimeout(() => { v.classList.remove("recalc"); render(true); }, 190);
+});
+$("#menuBtn").addEventListener("click", abrirMenu);
+$("#scrim").addEventListener("click", cerrarMenu);
+document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") cerrarMenu(); });
+window.addEventListener("resize", moverIndicador);
+
+
+
+
+/* ▼▼ BLOQUE: DRILL-JS ▼▼ */
+/* ══════════════════════════════════════════════════════════════════════
+   PANEL DE ORIGEN DEL DATO
+   Tocas cualquier cifra y te dice de dónde salió, con qué fórmula, de
+   qué tabla, qué significa y qué ojo tener. Todo el contenido viene de
+   explicar() en LOGIC: RENDER solo lo pinta.
+   ══════════════════════════════════════════════════════════════════════ */
+const INV_METODO = { "Efectivo":"efectivo", "Tarjeta":"tarjeta", "Transferencia":"transferencia", "Apps de reparto":"delivery_apps" };
+const INV_CATEGORIA = { "Proveedores":"proveedores", "Renta":"renta", "Luz, gas y agua":"servicios", "Otros gastos":"otros" };
+
+function nombreAlcance(){
+  if (ui.sucursal === GRUPO_ID) return "Grupo · " + SUC_ACTIVAS.length + " sucursales";
+  return SUCURSALES.find(s => s.sucursal_id === ui.sucursal).nombre;
+}
+
+const ICO_TABLA = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>';
+const ICO_OJO = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4L2.5 20h19z"/><path d="M12 10v4M12 17.4v.1"/></svg>';
+
+function abrirDrill(clave){
+  const kpi = kpiDe(DATA, ui.sucursal, ui.periodo, false);
+  const tk  = ticketsDe(DATA, ui.sucursal, rangoPeriodo(ui.periodo, false));
+  const e = explicar(clave, { kpi, tk, periodo:ui.periodo, nombreAlcance:nombreAlcance() });
+  if (!e) return;
+
+  $("#drillEy").textContent = e.alcance + " · " + e.periodo;
+  $("#drillT").textContent = e.titulo;
+  $("#drillV").textContent = e.porcentaje !== undefined
+    ? e.porcentaje + "%"
+    : (e.entero ? ent.format(e.valor) : fmt(e.valor));
+
+  const paso = (p) => {
+    const v = p.pct ? p.valor + "%" : (p.entero ? ent.format(p.valor) : fmt(p.valor));
+    return `<div class="drill-paso${p.total ? " total" : ""}">
+      <span class="dp-n">${p.etiqueta}</span>
+      <span class="dp-v${p.valor < 0 ? " neg" : ""}">${v}</span></div>`;
+  };
+
+  $("#drillBody").innerHTML = `
+    <div class="drill-sec">
+      <div class="drill-lbl">Cómo se calcula</div>
+      <div class="drill-formula">${e.formula}</div>
+    </div>
+    <div class="drill-sec">
+      <div class="drill-lbl">De dónde sale</div>
+      ${e.pasos.map(paso).join("")}
+    </div>
+    <div class="drill-sec">
+      <div class="drill-lbl">Qué significa</div>
+      <p class="drill-p">${e.significado}</p>
+    </div>
+    ${e.ojo ? `<div class="drill-sec"><div class="drill-ojo">${ICO_OJO}<p>${e.ojo}</p></div></div>` : ""}
+    <div class="drill-sec">
+      <div class="drill-lbl">Fuente del dato</div>
+      <div class="drill-fuente">${e.fuente.map(f => `<span class="drill-f">${ICO_TABLA}${f}</span>`).join("")}</div>
+    </div>`;
+
+  $("#drill").classList.add("on");
+  $("#drillScrim").classList.add("on");
+}
+const cerrarDrill = () => { $("#drill").classList.remove("on"); $("#drillScrim").classList.remove("on"); };
+
+/* Delegación: cualquier elemento con data-drill abre el panel. */
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest("[data-drill]");
+  if (!t || ev.target.closest(".drill")) return;
+  abrirDrill(t.dataset.drill);
+});
+$("#drillX").addEventListener("click", cerrarDrill);
+$("#drillScrim").addEventListener("click", cerrarDrill);
+document.addEventListener("keydown", (ev) => { if (ev.key === "Escape"){ cerrarDrill(); cerrarVista(); cerrarMenu(); } });
+
+
+
+
+/* ▼▼ BLOQUE: MODO-VISTA (JS) ▼▼ */
+const vista = { modo:"oscuro", texto:"0", contraste:"0" };
+function aplicarVista(){
+  const d = document.documentElement.dataset;
+  d.modo = vista.modo; d.texto = vista.texto; d.contraste = vista.contraste;
+}
+const MODOS = [
+  { id:"dia",    n:"Día",    d:"Para el sol" },
+  { id:"oscuro", n:"Normal", d:"Uso diario" },
+  { id:"noche",  n:"Noche",  d:"Sin brillo" }
+];
+const TEXTOS = [{id:"0",n:"A",s:13},{id:"1",n:"A",s:15},{id:"2",n:"A",s:17},{id:"3",n:"A",s:19}];
+
+function montarPanelVista(){
+  const k = kpiDe(DATA, ui.sucursal, ui.periodo, false);
+  $("#pvBody").innerHTML = `
+    <div class="pv-sec">
+      <div class="pv-lbl">Dónde estás</div>
+      <div class="pv-ops tres">${MODOS.map(m => `
+        <button class="pv-op" data-modo="${m.id}" aria-pressed="${vista.modo === m.id}">
+          <span>${m.n}</span><span style="font-size:10.5px;font-weight:500;opacity:.75">${m.d}</span>
+        </button>`).join("")}</div>
+    </div>
+    <div class="pv-sec">
+      <div class="pv-lbl">Tamaño de letra</div>
+      <div class="pv-ops" style="grid-template-columns:repeat(4,1fr)">${TEXTOS.map(t => `
+        <button class="pv-op" data-texto="${t.id}" aria-pressed="${vista.texto === t.id}">
+          <span class="aa" style="font-size:${t.s}px">${t.n}</span>
+        </button>`).join("")}</div>
+    </div>
+    <div class="pv-sec">
+      <button class="pv-fila" style="width:100%" data-contraste aria-pressed="${vista.contraste === "1"}">
+        <div style="text-align:left">
+          <div class="pv-fila-t">Marcar más los bordes</div>
+          <div class="pv-fila-d">Líneas más gruesas y texto más marcado</div>
+        </div>
+        <span class="pv-sw"></span>
+      </button>
+    </div>
+    <div class="pv-sec">
+      <div class="pv-lbl">Así se va a ver</div>
+      <div class="pv-demo">
+        <div class="lbl">Balance de hoy</div>
+        <div class="pv-demo-c">${fmt(k.balance)}</div>
+        <div style="margin-top:9px"><span class="estado" data-e="${k.estado_general}">${icoEstado(k.estado_general)}${TEXTO_ESTADO[k.estado_general]}</span></div>
+      </div>
+    </div>`;
+  $$("#pvBody [data-modo]").forEach(b => b.addEventListener("click", () => { vista.modo = b.dataset.modo; aplicarVista(); montarPanelVista(); }));
+  $$("#pvBody [data-texto]").forEach(b => b.addEventListener("click", () => { vista.texto = b.dataset.texto; aplicarVista(); montarPanelVista(); }));
+  const c = $("#pvBody [data-contraste]");
+  if (c) c.addEventListener("click", () => { vista.contraste = vista.contraste === "1" ? "0" : "1"; aplicarVista(); montarPanelVista(); });
+}
+const abrirVista = () => { montarPanelVista(); $("#pv").classList.add("on"); $("#pvScrim").classList.add("on"); };
+const cerrarVista = () => { $("#pv").classList.remove("on"); $("#pvScrim").classList.remove("on"); };
+$("#vistaBtn").addEventListener("click", abrirVista);
+$("#pvScrim").addEventListener("click", cerrarVista);
+/* ▲▲ FIN: MODO-VISTA (JS) ▲▲ */
+
+
+/* ▼▼ BLOQUE: SECCIONES-VIVAS ▼▼
+   Sucursales, Alertas y Reportes con datos reales.
+   Cortes de caja sigue en Fase 2: necesita un dato que nadie captura.
+   ══════════════════════════════════════════════════════════════════ */
+const MARCAS_SUC = {
+  pirata_1:{sigla:"P1",color:"#C8912A"}, pirata_2:{sigla:"P2",color:"#C8912A"},
+  pirata_3:{sigla:"P3",color:"#C8912A"}, santa_1:{sigla:"S1",color:"#6E56C8"},
+  santa_2:{sigla:"S2",color:"#6E56C8"}, santa_3:{sigla:"S3",color:"#6E56C8"},
+  brasilena:{sigla:"B",color:"#2E9E3C"}, tarasca:{sigla:"T",color:"#C2453A"},
+  capitan:{sigla:"C",color:"#2C7FA8"}
+};
+/* TODO: sustituir por los logos oficiales cuando Dani los entregue. */
+function mono(id, clase, apagado){
+  const m = MARCAS_SUC[id] || {sigla:"?",color:"var(--serie-4)"};
+  return `<span class="mono ${clase||""}" ${apagado?'data-off="1"':''} style="background:${m.color}">${m.sigla}</span>`;
+}
+const sucDe = (id) => SUCURSALES.find(s => s.sucursal_id === id);
+const MAPA_POS = { pirata_1:[50,46], pirata_2:[35,66], pirata_3:[70,74], santa_1:[58,39],
+  santa_2:[29,27], brasilena:[63,57], tarasca:[21,52], santa_3:[45,15], capitan:[79,33] };
+const ENCARGADOS = { pirata_1:"Encargado P1", pirata_2:"Encargado P2", pirata_3:"Encargado P3",
+  santa_1:"Encargado S1", santa_2:"Encargado S2", brasilena:"Encargado Brasileña", tarasca:"Encargado Tarasca" };
+
+const ICO_TEL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>';
+const ICO_WA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 20.5l1.8-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>';
+
+function vistaSucursales(){
+  const tabla = tablaSucursales(DATA, ui.periodo);
+  const porId = {}; tabla.forEach(t => porId[t.sucursal_id] = t);
+  const pines = SUCURSALES.map(s => {
+    const t = porId[s.sucursal_id];
+    const e = s.activa ? t.estado : "off";
+    const pos = MAPA_POS[s.sucursal_id];
+    return `<button class="pin" data-e="${e}" data-suc="${s.sucursal_id}"
+      style="left:${pos[0]}%;top:${pos[1]}%;color:var(--${e==="off"?"fase2":e})">
+      <span class="pin-halo"></span><span class="pin-tallo"></span>
+      <span class="pin-cuerpo">${mono(s.sucursal_id,"sm",!s.activa)}<span class="pin-n">${(MARCAS_SUC[s.sucursal_id]||{}).sigla||""}</span></span>
+    </button>`;
+  }).join("");
+
+  const filas = tabla.map(t => `
+    <div>
+      <div class="ficha-row" data-suc="${t.sucursal_id}">
+        ${mono(t.sucursal_id)}
+        <div>
+          <div class="ficha-n">${t.nombre} <span class="lamp" data-e="${t.estado}" style="display:inline-block;vertical-align:middle;margin-left:4px"></span></div>
+          <div class="ficha-z">${t.zona} · ${ent.format(t.tickets)} cuentas · promedio ${fmt(t.ticket_promedio)}${t.alertas?" · "+t.alertas+" pendiente"+(t.alertas>1?"s":""):""}</div>
+        </div>
+        <div>
+          <div class="ficha-v" style="color:${t.balance<0?"var(--critico)":"var(--ink)"}">${fmt(t.balance)}</div>
+          <div class="ficha-m">quedó ${t.margen.toFixed(0)}%</div>
+        </div>
+      </div>
+      <div class="enc">
+        ${mono(t.sucursal_id,"sm")}
+        <div><div class="enc-n">${ENCARGADOS[t.sucursal_id]}</div><div class="enc-r">Encargado</div></div>
+        <div class="enc-acc">
+          <a class="enc-btn" href="tel:+520000000000" aria-label="Llamar">${ICO_TEL}</a>
+          <a class="enc-btn wa" href="https://wa.me/520000000000" target="_blank" rel="noopener" aria-label="WhatsApp">${ICO_WA}</a>
+        </div>
+      </div>
+    </div>`).join("");
+
+  const proximas = SUCURSALES.filter(s => !s.activa).map(s => `
+    <div class="ficha-row" style="opacity:.62">${mono(s.sucursal_id,"",true)}
+      <div><div class="ficha-n">${s.nombre}</div><div class="ficha-z">${s.zona} · en apertura</div></div>
+      <span class="tag-f2">FASE 2</span></div>`).join("");
+
+  return `<div class="grid">
+    <article class="card" style="grid-column:span 12">
+      <div class="card-h"><h2 class="card-t">Dónde está cada una</h2><span class="card-x">${SUC_ACTIVAS.length} abiertas</span></div>
+      <div class="mapa-caja" id="mapaCaja"><div class="mapa-lienzo">
+        <svg class="mapa-svg" viewBox="0 0 100 75" preserveAspectRatio="none" aria-hidden="true">
+          <path class="mapa-zona" d="M40 31 L64 29 L68 50 L44 54 Z" opacity=".55"/>
+          <path class="mapa-via" d="M0 40 L100 36"/><path class="mapa-via" d="M52 0 L48 75"/>
+          <path class="mapa-via" d="M8 62 L96 20"/><path class="mapa-via" d="M14 12 L86 66" opacity=".5"/>
+        </svg>${pines}</div></div>
+      <div class="mapa-ctrl">
+        <span class="mapa-nota">Ubicaciones por zona, no coordenadas exactas.<br>Toca una para verla.</span>
+        <button class="mini-btn" id="mapaPlano">Ver plano</button>
+      </div>
+    </article>
+    <article class="card" style="grid-column:span 12">
+      <div class="card-h"><h2 class="card-t">Cómo va cada una</h2><span class="card-x" id="sucPer"></span></div>
+      <div class="ficha">${filas}</div>
+    </article>
+    <article class="card" style="grid-column:span 12">
+      <div class="card-h"><h2 class="card-t">Por abrir</h2></div>
+      <div class="ficha">${proximas}</div>
+    </article>
+  </div>`;
+}
+
+let filtroAl = "todas";
+function vistaAlertas(){
+  const todas = historialAlertas(DATA, ui.periodo);
+  const lista = filtroAl === "todas" ? todas : todas.filter(a => a.estado === filtroAl);
+  const c = (e) => todas.filter(a => a.estado === e).length;
+  const items = lista.length ? lista.map(a => {
+    let d = a.detalle;
+    if (a._tipo === "monto") d = `Salieron <span class="num">${fmt(a._monto)}</span> más de lo que entró`;
+    if (a._tipo === "monto_pct") d = `<span class="num">${fmt(a._monto)}</span> · ${a.detalle}`;
+    return `<div class="aitem" data-drill="dia:${a.fecha}:${a.sucursal_id}">
+      <span class="al-ic" style="color:var(--${a.estado})">${icoEstado(a.estado,16)}</span>
+      <div><div class="aitem-t">${a.titulo}</div><div class="aitem-d">${d}</div>
+        <div class="aitem-s">${mono(a.sucursal_id,"sm")} ${a.sucursal}</div></div>
+      <span class="al-ch">${CHEVRON}</span></div>`;
+  }).join("") : `<div class="vacio">${icoEstado("sano",26)}
+      <div class="vacio-t">Nada que atender</div>
+      <div class="vacio-d">Ninguna sucursal necesita tu atención en este periodo.</div></div>`;
+  return `<div class="grid"><article class="card" style="grid-column:span 12">
+    <div class="card-h"><h2 class="card-t">Lo que necesita tu atención</h2><span class="card-x">${todas.length} en total</span></div>
+    <div class="filtros" id="filtrosAl">
+      <button class="filtro" data-f="todas" aria-pressed="${filtroAl==="todas"}">Todas · ${todas.length}</button>
+      <button class="filtro" data-f="critico" aria-pressed="${filtroAl==="critico"}">Atender hoy · ${c("critico")}</button>
+      <button class="filtro" data-f="alarma" aria-pressed="${filtroAl==="alarma"}">Vigilar · ${c("alarma")}</button>
+    </div>
+    <div class="alista">${items}</div></article></div>`;
+}
+
+const ICO_WA_G = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 20.5l1.8-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>';
+const ICO_COPIA = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+const ICO_IMPR = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2"/><rect x="8" y="14" width="8" height="7" rx="1"/></svg>';
+
+/* Reportes sin jerga: nada de "CSV". Un resumen que se lee, se manda por
+   WhatsApp, se copia o se imprime. */
+function vistaReportes(){
+  const r = resumenTexto(DATA, ui.sucursal, ui.periodo);
+  const k = kpiDe(DATA, ui.sucursal, ui.periodo, false);
+  const t = ticketsDe(DATA, ui.sucursal, rangoPeriodo(ui.periodo, false));
+  const per = { hoy:"de hoy", semana:"de la semana", mes:"del mes" }[ui.periodo];
+  const linea = (n,v,c) => `<div class="rs-fila"><span class="rs-n">${n}</span><span class="rs-v" ${c?`style="color:${c}"`:""}>${v}</span></div>`;
+  return `<div class="grid">
+    <article class="card" style="grid-column:span 12">
+      <div class="card-h"><h2 class="card-t">El resumen ${per}</h2><span class="card-x">${nombreAlcance()}</span></div>
+      <div class="rs">
+        ${linea("Entró", fmt(k.ingresos), "var(--sano)")}
+        ${linea("Salió", fmt(k.salidas), "var(--critico)")}
+        ${linea("Quedó", fmt(k.balance))}
+        ${linea("De cada $100 que entró, te quedaron", fmt(k.ingresos>0?Math.round(k.balance/k.ingresos*100):0))}
+        ${linea("Cuentas cerradas", ent.format(t.tickets))}
+        ${linea("Promedio por cuenta", fmt(t.ticket_promedio))}
+      </div>
+      <div class="rs-vered" data-e="${r.estado}">
+        ${icoEstado(r.estado,17)}
+        <div><div class="rs-vt">${r.veredicto}</div>${r.cambio?`<div class="rs-vd">${r.cambio}</div>`:""}</div>
+      </div>
+      ${r.alertas.length?`<div class="rs-pend"><div class="pv-lbl">Pendientes</div>
+        ${r.alertas.map(a=>`<div class="rs-p">${CHEVRON}<span>${a}</span></div>`).join("")}</div>`:""}
+      <div class="rs-acc">
+        <button class="rep-btn" id="repWa">${ICO_WA_G} Mandar por WhatsApp</button>
+        <button class="rep-btn sec" id="repCopiar">${ICO_COPIA} Copiar</button>
+        <button class="rep-btn sec" id="repImpr">${ICO_IMPR} Imprimir</button>
+      </div>
+    </article>
+    <aside class="fase1" style="grid-column:span 12">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg>
+      <div><div class="f1-t">Mándaselo a tu contador</div>
+      <div class="f1-d">Este resumen sale de los mismos datos que ves en pantalla. El archivo para contabilidad y el envío automático cada mes llegan en Fase 2.</div></div>
+    </aside>
+  </div>`;
+}
+
+function montarSecciones(){
+  const per = { hoy:"Hoy", semana:"Últimos 7 días", mes:"Últimos 30 días" }[ui.periodo];
+
+  $("#v-sucursales").innerHTML = vistaSucursales();
+  $$("#v-sucursales .pin, #v-sucursales .ficha-row[data-suc]").forEach(el =>
+    el.addEventListener("click", () => {
+      const s = sucDe(el.dataset.suc);
+      if (!s.activa){ toast(s.nombre + " abre en Fase 2"); return; }
+      ui.sucursal = el.dataset.suc; irA("inicio"); render(true);
+    }));
+  const caja = $("#mapaCaja"), mb = $("#mapaPlano");
+  if (mb) mb.addEventListener("click", () => {
+    const plano = caja.dataset.plano === "1";
+    caja.dataset.plano = plano ? "0" : "1";
+    mb.textContent = plano ? "Ver plano" : "Ver en 3D";
+  });
+  if ($("#sucPer")) $("#sucPer").textContent = per;
+
+  $("#v-alertas").innerHTML = vistaAlertas();
+  $$("#filtrosAl .filtro").forEach(b => b.addEventListener("click", () => { filtroAl = b.dataset.f; montarSecciones(); }));
+
+  $("#v-reportes").innerHTML = vistaReportes();
+  const txt = () => textoCompartible(DATA, ui.sucursal, ui.periodo);
+  const bw = $("#repWa");
+  if (bw) bw.addEventListener("click", () => window.open("https://wa.me/?text=" + encodeURIComponent(txt()), "_blank"));
+  const bc = $("#repCopiar");
+  if (bc) bc.addEventListener("click", () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(txt()).then(() => toast("Resumen copiado"));
+    else toast("Copia no disponible en este navegador");
+  });
+  const bi = $("#repImpr");
+  if (bi) bi.addEventListener("click", () => window.print());
+}
+/* ▲▲ FIN: SECCIONES-VIVAS ▲▲ */
+
+
+
+/* ▼▼ BLOQUE: DRAWER-MOVIL ▼▼
+   El drawer de móvil NO duplica el bottom nav (punto 5 auditado).
+   Abajo se navega; aquí se elige sucursal y se ajusta la vista.
+   ══════════════════════════════════════════════════════════════════ */
+function montarDrawerMovil(){
+  const cat = estadosCatalogo(DATA, ui.periodo);
+  const filas = cat.map(c => {
+    const k = c.activa ? kpiDe(DATA, c.sucursal_id, ui.periodo, false) : null;
+    return `<button type="button" class="dw-item" data-suc="${c.sucursal_id}"
+      aria-pressed="${c.sucursal_id === ui.sucursal}" ${c.activa ? "" : "disabled"}>
+      ${c.sucursal_id === GRUPO_ID ? '<span class="mono sm" style="background:var(--acento)">G</span>' : mono(c.sucursal_id,"sm",!c.activa)}
+      <span class="lamp" data-e="${c.estado}"></span>
+      <span style="text-align:left"><span style="font-size:13.5px;font-weight:500">${c.nombre}</span><br>
+      <span class="dw-z">${c.zona}</span></span>
+      <span class="dw-v">${k ? fmt(k.balance) : '<span class="tag-f2">FASE 2</span>'}</span>
+    </button>`;
+  }).join("");
+  $("#sideMovil").innerHTML = `<div class="dw-lbl">Ver sucursal</div>${filas}
+    <div class="dw-lbl">Vista</div>
+    <button type="button" class="dw-item" id="dwVista">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <span>Cómo se ve</span><span class="dw-v" style="font-family:var(--sans);font-size:12px;color:var(--ink-3)">${{dia:"Día",oscuro:"Normal",noche:"Noche"}[vista.modo]}</span>
+    </button>`;
+  $$("#sideMovil [data-suc]").forEach(b => b.addEventListener("click", () => {
+    if (b.disabled) return;
+    ui.sucursal = b.dataset.suc; cerrarMenu(); render(true);
+  }));
+  const dv = $("#dwVista");
+  if (dv) dv.addEventListener("click", () => { cerrarMenu(); abrirVista(); });
+}
+/* ▲▲ FIN: DRAWER-MOVIL ▲▲ */
+
+/* — Arranque — */
+montarNav();
+aplicarVista();
+montarDrawerMovil();
+montarFase2();
+montarSecciones();
+render(true);
+requestAnimationFrame(moverIndicador);
+
+</script>
+</body>
+</html>

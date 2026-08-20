@@ -6,11 +6,10 @@ import { ok, apiError } from '@/lib/api/responses';
 // lógica para errores de carga (turno/restaurante equivocado, duplicado, etc).
 // Un corte cancelado libera el slot único (restaurant_id, business_date, turno)
 // vía el índice parcial uq_corte_activo — ver migración 0001_init.sql.
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
   const auth = await requireRole(['responsable_restaurante', 'validador_cortes', 'admin']);
   if (auth instanceof Response) return auth;
   const { supabase, user, role } = auth;
-  const { id } = await params;
 
   const body = await req.json().catch(() => ({}));
   if (!body.motivo) {
@@ -22,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data: existing, error: fetchError } = await supabase
     .from('cortes')
     .select('estado, created_by')
-    .eq('id', id)
+    .eq('id', params.id)
     .single();
 
   if (fetchError || !existing) return apiError('RESOURCE_NOT_FOUND', 'Corte no encontrado.');
@@ -46,7 +45,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       cancelled_by: user.id,
       cancelled_at: new Date().toISOString(),
     })
-    .eq('id', id)
+    .eq('id', params.id)
     .select()
     .single();
 

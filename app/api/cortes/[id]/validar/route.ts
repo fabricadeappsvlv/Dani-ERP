@@ -2,16 +2,15 @@ import { requireRole } from '@/lib/api/auth';
 import { ok, apiError } from '@/lib/api/responses';
 
 // POST /api/cortes/{id}/validar — solo validador_cortes (sección 4.3.2)
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
   const auth = await requireRole(['validador_cortes']);
   if (auth instanceof Response) return auth;
   const { supabase, user } = auth;
-  const { id } = await params;
 
   const { data: existing, error: fetchError } = await supabase
     .from('cortes')
     .select('estado, monto_efectivo_reportado, monto_tarjeta_reportado')
-    .eq('id', id)
+    .eq('id', params.id)
     .single();
 
   if (fetchError || !existing) return apiError('RESOURCE_NOT_FOUND', 'Corte no encontrado.');
@@ -46,7 +45,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       validated_by: user.id,
       validated_at: new Date().toISOString(),
     })
-    .eq('id', id)
+    .eq('id', params.id)
     .select()
     .single();
 

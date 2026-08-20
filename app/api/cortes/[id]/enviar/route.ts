@@ -2,16 +2,15 @@ import { requireRole } from '@/lib/api/auth';
 import { ok, apiError } from '@/lib/api/responses';
 
 // POST /api/cortes/{id}/enviar — preliminar -> en_proceso (sección 4.3.1)
-export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const auth = await requireRole(['responsable_restaurante']);
   if (auth instanceof Response) return auth;
   const { supabase, user } = auth;
-  const { id } = await params;
 
   const { data: existing, error: fetchError } = await supabase
     .from('cortes')
     .select('estado, created_by')
-    .eq('id', id)
+    .eq('id', params.id)
     .single();
 
   if (fetchError || !existing) return apiError('RESOURCE_NOT_FOUND', 'Corte no encontrado.');
@@ -23,7 +22,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const { data, error } = await supabase
     .from('cortes')
     .update({ estado: 'en_proceso' })
-    .eq('id', id)
+    .eq('id', params.id)
     .select()
     .single();
 
