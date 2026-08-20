@@ -10,6 +10,19 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-18-frontend-fase1-design.md`
 
+> **Estado de ejecución (2026-08-19):** todo el código de las Tareas 1-12 está
+> implementado y commiteado en el branch `frontend-fase1`. `npm run typecheck`,
+> `npm run lint` y `npm run build` pasan limpio sobre el estado final del branch
+> (Tarea 13, Step 1). **Los pasos que siguen sin marcar están bloqueados por la
+> falta de Docker en esta máquina**: sin Docker no corre `supabase start`, así que
+> no hay base local, ni usuarios de prueba sembrados, ni sesiones reales contra las
+> que hacer el QA manual por rol. Lo único verificado en runtime fue el guard de
+> sesión (`npm run dev` + `curl`): `/login` renderiza con estilos y `/`, `/cortes`,
+> `/cortes/nuevo`, `/validacion`, `/restaurantes` y `/egresos` responden 307 a
+> `/login` sin sesión. Para desbloquear: instalar Docker Desktop, `supabase start`,
+> completar las claves en `.env.local`, `supabase db push`, `npm run seed:test-users`,
+> y recorrer los pasos de QA restantes.
+
 ## Global Constraints
 
 - Toda lectura/escritura de datos de negocio desde la UI pasa por `apiFetch()` hacia `/api/**` — nunca Supabase directo desde un Server Component/Action de la UI, excepto para sesión (login/logout/rol actual).
@@ -65,7 +78,7 @@ supabase db push
 
 Expected: confirma que aplicó `0001_init.sql` y `0002_softrestaurant_integration.sql` sin error.
 
-- [ ] **Step 3: Escribir el script de seed**
+- [x] **Step 3: Escribir el script de seed**
 
 Create `supabase/seed-test-users.mjs`:
 
@@ -153,7 +166,7 @@ npm run seed:test-users
 
 Expected: 5 líneas `Creado: <email> (<rol>)`, una línea `Restaurante "Restaurante de Prueba" asignado a responsable@test.local`, y la línea de la contraseña. Sin líneas de error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add supabase/config.toml supabase/seed-test-users.mjs package.json
@@ -173,7 +186,7 @@ git commit -m "Agregar Supabase local y usuarios de prueba por rol para QA manua
 **Interfaces:**
 - Produces: `cn()` en `lib/utils.ts` (usado por todos los componentes de UI que se escriban a mano en tareas posteriores); los primitivos `@/components/ui/*` importados en tareas 4-12.
 
-- [ ] **Step 1: Inicializar shadcn/ui (instala Tailwind v4 automáticamente)**
+- [x] **Step 1: Inicializar shadcn/ui (instala Tailwind v4 automáticamente)**
 
 ```bash
 npx shadcn@latest init -b radix
@@ -181,7 +194,7 @@ npx shadcn@latest init -b radix
 
 Si pregunta por el color base, elige `neutral`. Esto crea/edita `postcss.config.mjs`, `app/globals.css`, `components.json`, `lib/utils.ts`, y agrega `tailwindcss`, `@tailwindcss/postcss`, `class-variance-authority`, `clsx`, `tailwind-merge`, `lucide-react` a `package.json`.
 
-- [ ] **Step 2: Verificar que `app/layout.tsx` importa los estilos**
+- [x] **Step 2: Verificar que `app/layout.tsx` importa los estilos**
 
 Read `app/layout.tsx`. Si no tiene `import './globals.css';` en la primera línea, agrégalo. El archivo debe quedar:
 
@@ -202,7 +215,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-- [ ] **Step 3: Instalar los primitivos necesarios**
+- [x] **Step 3: Instalar los primitivos necesarios**
 
 ```bash
 npx shadcn@latest add button input label select native-select table card badge dialog textarea sonner
@@ -210,7 +223,7 @@ npx shadcn@latest add button input label select native-select table card badge d
 
 Expected: crea los archivos en `components/ui/` sin error, y agrega `@radix-ui/*` y `sonner` a `package.json`.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 ```bash
 npm run typecheck
@@ -220,7 +233,7 @@ npm run build
 
 Expected: los tres comandos pasan limpio (la app sigue sin usar los componentes todavía, pero deben compilar).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add postcss.config.mjs app/globals.css app/layout.tsx components.json lib/utils.ts components/ui package.json package-lock.json
@@ -245,7 +258,7 @@ git commit -m "Instalar Tailwind v4 y primitivos de shadcn/ui"
   - `getCurrentUser(): Promise<{id:string; email:string; fullName:string; role:Role} | null>`, tipo `CurrentUser` (`lib/auth/session.ts`)
 - Consumes: `Role` de `@/lib/api/auth` (ya existe), `createClient` de `@/lib/supabase/server` (ya existe, es async).
 
-- [ ] **Step 1: Crear los tipos de dominio**
+- [x] **Step 1: Crear los tipos de dominio**
 
 Create `lib/api/types.ts`:
 
@@ -286,7 +299,7 @@ export type Restaurant = {
 };
 ```
 
-- [ ] **Step 2: Crear el helper `apiFetch`**
+- [x] **Step 2: Crear el helper `apiFetch`**
 
 Create `lib/api/fetch.ts`:
 
@@ -332,7 +345,7 @@ export async function apiFetch<T = unknown>(
 }
 ```
 
-- [ ] **Step 3: Crear el helper de formato de moneda**
+- [x] **Step 3: Crear el helper de formato de moneda**
 
 Create `lib/format/money.ts`:
 
@@ -346,7 +359,7 @@ export function formatCentavos(centavos: number, currency = 'MXN'): string {
 }
 ```
 
-- [ ] **Step 4: Crear el helper de sesión**
+- [x] **Step 4: Crear el helper de sesión**
 
 Create `lib/auth/session.ts`:
 
@@ -382,7 +395,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 }
 ```
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 ```bash
 npm run typecheck
@@ -392,7 +405,7 @@ npm run build
 
 Expected: los tres pasan limpio. Estos archivos no tienen UI que probar manualmente todavía — su comportamiento se verifica de punta a punta en las tareas 4+.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/api/types.ts lib/api/fetch.ts lib/format/money.ts lib/auth/session.ts
@@ -412,7 +425,7 @@ git commit -m "Agregar utilidades compartidas: apiFetch, tipos de API, formato d
 - Consumes: `getCurrentUser()` de `@/lib/auth/session`, `createClient()` de `@/lib/supabase/server`, `Card`/`CardHeader`/`CardTitle`/`CardDescription`/`CardContent` de `@/components/ui/card`, `Button`/`Input`/`Label` de `@/components/ui`.
 - Produces: ruta pública `/login`.
 
-- [ ] **Step 1: Server Action de login**
+- [x] **Step 1: Server Action de login**
 
 Create `app/login/actions.ts`:
 
@@ -443,7 +456,7 @@ export async function signIn(_prevState: LoginState, formData: FormData): Promis
 }
 ```
 
-- [ ] **Step 2: Formulario (Client Component)**
+- [x] **Step 2: Formulario (Client Component)**
 
 Create `app/login/login-form.tsx`:
 
@@ -480,7 +493,7 @@ export function LoginForm() {
 }
 ```
 
-- [ ] **Step 3: Página**
+- [x] **Step 3: Página**
 
 Create `app/login/page.tsx`:
 
@@ -525,7 +538,7 @@ Con el dev server corriendo, en el navegador:
 3. Enviar con `no-existe@test.local` / `cualquier-cosa`. Expected: aparece "Credenciales inválidas." sin recargar la página.
 4. Enviar con `responsable@test.local` / `Test1234!` (usuario creado en la Tarea 1). Expected: redirige a `/` (dará 404 o pantalla en blanco hasta la Tarea 5 — eso es esperado en este punto).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/login
@@ -551,7 +564,7 @@ git commit -m "Agregar página de login"
 - Consumes: `getCurrentUser()`/`CurrentUser` de `@/lib/auth/session`, `Role` de `@/lib/api/auth`, `createClient()` de `@/lib/supabase/server`, `Toaster` de `@/components/ui/sonner`.
 - Produces: layout protegido `app/(dashboard)/*`; `signOut()` Server Action reexportada e importada por `UserMenu`.
 
-- [ ] **Step 1: Configuración de navegación por rol**
+- [x] **Step 1: Configuración de navegación por rol**
 
 Create `components/shell/nav-items.ts`:
 
@@ -579,7 +592,7 @@ export function navItemsForRole(role: Role): NavItem[] {
 }
 ```
 
-- [ ] **Step 2: Sidebar**
+- [x] **Step 2: Sidebar**
 
 Create `components/shell/sidebar.tsx`:
 
@@ -610,7 +623,7 @@ export function Sidebar({ role }: { role: Role }) {
 }
 ```
 
-- [ ] **Step 3: Server Action de logout**
+- [x] **Step 3: Server Action de logout**
 
 Create `app/(dashboard)/actions.ts`:
 
@@ -627,7 +640,7 @@ export async function signOut() {
 }
 ```
 
-- [ ] **Step 4: UserMenu + Header**
+- [x] **Step 4: UserMenu + Header**
 
 Create `components/shell/user-menu.tsx`:
 
@@ -669,7 +682,7 @@ export function Header({ user }: { user: CurrentUser }) {
 }
 ```
 
-- [ ] **Step 5: Shell + layout + redirect por rol**
+- [x] **Step 5: Shell + layout + redirect por rol**
 
 Create `components/shell/shell.tsx`:
 
@@ -734,7 +747,7 @@ export default async function DashboardRootPage() {
 }
 ```
 
-- [ ] **Step 6: Error boundary para errores inesperados**
+- [x] **Step 6: Error boundary para errores inesperados**
 
 `apiFetch` deja pasar sin capturar cualquier excepción que no sea un error de negocio (p.ej. `res.json()` fallando porque el servidor devolvió HTML en vez de JSON) — esos casos deben mostrarse como un toast genérico, no como una pantalla en blanco (regla de la spec, sección "Manejo de errores").
 
@@ -783,7 +796,7 @@ En el navegador:
 4. Login con `dueno@test.local` / `Test1234!`. Expected: redirige a `/restaurantes` (404 hasta la Tarea 11 — esperado), la barra lateral muestra "Restaurantes" y "Cortes".
 5. Repetir login con `validador@test.local` y `egresos@test.local`: la barra lateral debe mostrar solo el link correspondiente a cada uno (tabla de la spec).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add "app/(dashboard)" components/shell
@@ -804,7 +817,7 @@ git commit -m "Agregar shell del dashboard con navegacion y logout por rol"
 - Consumes: `apiFetch` (`@/lib/api/fetch`), `getCurrentUser` (`@/lib/auth/session`), `Corte`/`Restaurant` (`@/lib/api/types`), `formatCentavos` (`@/lib/format/money`).
 - Produces: `<CortesTable cortes restaurantsById showRestaurant linkBase? />` y `<EstadoBadge estado />`, reutilizados en las Tareas 9 y 10.
 
-- [ ] **Step 1: Badge de estado**
+- [x] **Step 1: Badge de estado**
 
 Create `components/cortes/estado-badge.tsx`:
 
@@ -831,7 +844,7 @@ export function EstadoBadge({ estado }: { estado: EstadoCorte }) {
 }
 ```
 
-- [ ] **Step 2: Tabla de cortes (reutilizable)**
+- [x] **Step 2: Tabla de cortes (reutilizable)**
 
 Create `components/cortes/cortes-table.tsx`:
 
@@ -892,7 +905,7 @@ export function CortesTable({
 }
 ```
 
-- [ ] **Step 3: Filtro de restaurante (dueño/admin)**
+- [x] **Step 3: Filtro de restaurante (dueño/admin)**
 
 Create `components/cortes/restaurant-filter.tsx`:
 
@@ -934,7 +947,7 @@ export function RestaurantFilter({ restaurantes }: { restaurantes: Restaurant[] 
 }
 ```
 
-- [ ] **Step 4: Página de lista**
+- [x] **Step 4: Página de lista**
 
 Create `app/(dashboard)/cortes/page.tsx`:
 
@@ -998,7 +1011,7 @@ npm run dev
 
 En el navegador, login como `responsable@test.local`: Expected: la tabla aparece vacía ("No hay cortes para mostrar.") con el botón "Nuevo corte" visible. Login como `dueno@test.local` y navegar a `/cortes` manualmente (el link de sidebar ya existe): Expected: tabla vacía, sin botón "Nuevo corte".
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add "app/(dashboard)/cortes/page.tsx" components/cortes
@@ -1018,7 +1031,7 @@ git commit -m "Agregar pantalla de lista de cortes"
 - Produces: `crearCorte(prevState, formData)`, `editarCorte(corteId, prevState, formData)`, `enviarCorte(corteId, prevState, formData)`, todos con firma de retorno `CorteFormState = { error?: string }` — usados también en las Tareas 8.
 - Consumes: `apiFetch`, `pesosToCentavos`, `NativeSelect`/`NativeSelectOption` (`@/components/ui/native-select`).
 
-- [ ] **Step 1: Server Actions de cortes**
+- [x] **Step 1: Server Actions de cortes**
 
 Create `app/(dashboard)/cortes/actions.ts`:
 
@@ -1082,7 +1095,7 @@ export async function enviarCorte(
 }
 ```
 
-- [ ] **Step 2: Formulario de creación**
+- [x] **Step 2: Formulario de creación**
 
 Create `components/cortes/nuevo-corte-form.tsx`:
 
@@ -1148,7 +1161,7 @@ export function NuevoCorteForm({ restaurantes }: { restaurantes: Restaurant[] })
 }
 ```
 
-- [ ] **Step 3: Página**
+- [x] **Step 3: Página**
 
 Create `app/(dashboard)/cortes/nuevo/page.tsx`:
 
@@ -1190,7 +1203,7 @@ Login como `responsable@test.local`, ir a `/cortes/nuevo`:
 2. Repetir con la misma fecha/turno/restaurante. Expected: error "Ya existe un corte activo para ese turno, fecha y restaurante." (regla `DUPLICATE_CORTE` de la API).
 3. Login como `dueno@test.local` y navegar directo a `http://localhost:3000/cortes/nuevo`. Expected: redirige a `/cortes` (rol no autorizado para esta pantalla).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "app/(dashboard)/cortes/actions.ts" "app/(dashboard)/cortes/nuevo" components/cortes/nuevo-corte-form.tsx
@@ -1209,7 +1222,7 @@ git commit -m "Agregar formulario de creacion de cortes"
 **Interfaces:**
 - Consumes: `editarCorte`, `enviarCorte`, `CorteFormState` de `@/app/(dashboard)/cortes/actions` (Tarea 7).
 
-- [ ] **Step 1: Formulario de edición**
+- [x] **Step 1: Formulario de edición**
 
 Create `components/cortes/editar-corte-form.tsx`:
 
@@ -1264,7 +1277,7 @@ export function EditarCorteForm({ corte }: { corte: Corte }) {
 }
 ```
 
-- [ ] **Step 2: Botón de enviar a validación**
+- [x] **Step 2: Botón de enviar a validación**
 
 Create `components/cortes/enviar-corte-button.tsx`:
 
@@ -1292,7 +1305,7 @@ export function EnviarCorteButton({ corteId }: { corteId: string }) {
 }
 ```
 
-- [ ] **Step 3: Página de detalle**
+- [x] **Step 3: Página de detalle**
 
 Create `app/(dashboard)/cortes/[id]/page.tsx`:
 
@@ -1399,7 +1412,7 @@ Login como `responsable@test.local`, entrar al corte creado en la Tarea 7:
 3. Click "Enviar a validación". Expected: el badge cambia a "En proceso" y el formulario de edición desaparece (ya no es `preliminar`).
 4. Login como `dueno@test.local`, entrar al mismo corte vía `/cortes`. Expected: se ve el detalle en solo lectura, sin formulario de edición ni botón de enviar.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "app/(dashboard)/cortes/[id]" components/cortes/editar-corte-form.tsx components/cortes/enviar-corte-button.tsx
@@ -1416,7 +1429,7 @@ git commit -m "Agregar detalle, edicion y envio a validacion de cortes"
 **Interfaces:**
 - Consumes: `CortesTable` (Tarea 6, con `linkBase="/validacion"`), `apiFetch`.
 
-- [ ] **Step 1: Página de la cola**
+- [x] **Step 1: Página de la cola**
 
 Create `app/(dashboard)/validacion/page.tsx`:
 
@@ -1468,7 +1481,7 @@ npm run dev
 
 Login como `validador@test.local`, ir a `/validacion`. Expected: aparece el corte enviado en la Tarea 8 (estado "En proceso"), la fila enlaza a `/validacion/<id>` (dará 404 hasta la Tarea 10 — esperado).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add "app/(dashboard)/validacion/page.tsx"
@@ -1488,7 +1501,7 @@ git commit -m "Agregar cola de validacion de cortes"
 **Interfaces:**
 - Produces: `validarCorte(corteId, prevState, formData)`, `cancelarCorte(corteId, prevState, formData)`, ambos con `ValidacionFormState = { error?: string }`.
 
-- [ ] **Step 1: Server Actions de validación**
+- [x] **Step 1: Server Actions de validación**
 
 Create `app/(dashboard)/validacion/actions.ts`:
 
@@ -1539,7 +1552,7 @@ export async function cancelarCorte(
 }
 ```
 
-- [ ] **Step 2: Formulario de validación**
+- [x] **Step 2: Formulario de validación**
 
 Create `components/validacion/validacion-form.tsx`:
 
@@ -1619,7 +1632,7 @@ export function ValidacionForm({
 }
 ```
 
-- [ ] **Step 3: Diálogo de cancelación**
+- [x] **Step 3: Diálogo de cancelación**
 
 Create `components/validacion/cancelar-corte-dialog.tsx`:
 
@@ -1678,7 +1691,7 @@ export function CancelarCorteDialog({ corteId }: { corteId: string }) {
 
 (`cancelarCorte` hace `redirect('/validacion')` en éxito, así que el diálogo se desmonta con la navegación — no hace falta cerrarlo manualmente.)
 
-- [ ] **Step 4: Página de detalle de validación**
+- [x] **Step 4: Página de detalle de validación**
 
 Create `app/(dashboard)/validacion/[id]/page.tsx`:
 
@@ -1762,7 +1775,7 @@ Login como `validador@test.local`, entrar al corte de la Tarea 9:
 2. Crear otro corte como `responsable@test.local`, enviarlo, y esta vez en `/validacion/[id]` cambiar el monto efectivo validado para generar una diferencia distinta de cero, dejar el comentario vacío, click "Validar". Expected: error "Se requiere un comentario cuando hay diferencia distinta de cero." (mismo texto que la API). Llenar el comentario y reintentar. Expected: éxito, redirige a `/validacion`.
 3. Crear un tercer corte, en `/validacion/[id]` click "Cancelar corte", dejar el motivo vacío y enviar. Expected: el `required` del textarea bloquea el submit. Llenar un motivo y confirmar. Expected: redirige a `/validacion`, el corte ya no aparece en la cola (quedó `cancelado`).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add "app/(dashboard)/validacion/actions.ts" "app/(dashboard)/validacion/[id]" components/validacion
@@ -1779,7 +1792,7 @@ git commit -m "Agregar validacion y cancelacion de cortes"
 - Create: `components/restaurantes/nuevo-restaurante-dialog.tsx`
 - Create: `app/(dashboard)/restaurantes/page.tsx`
 
-- [ ] **Step 1: Server Action de creación**
+- [x] **Step 1: Server Action de creación**
 
 Create `app/(dashboard)/restaurantes/actions.ts`:
 
@@ -1813,7 +1826,7 @@ export async function crearRestaurante(
 }
 ```
 
-- [ ] **Step 2: Tabla**
+- [x] **Step 2: Tabla**
 
 Create `components/restaurantes/restaurantes-table.tsx`:
 
@@ -1854,7 +1867,7 @@ export function RestaurantesTable({ restaurantes }: { restaurantes: Restaurant[]
 }
 ```
 
-- [ ] **Step 3: Diálogo de creación (solo admin)**
+- [x] **Step 3: Diálogo de creación (solo admin)**
 
 Create `components/restaurantes/nuevo-restaurante-dialog.tsx`:
 
@@ -1916,7 +1929,7 @@ export function NuevoRestauranteDialog() {
 
 (El diálogo se cierra vía `useEffect` cuando `state.status === 'success'` — distinguir éxito de error requiere el discriminador `status`, ya que ambos casos devuelven un objeto y React no puede diferenciarlos solo por referencia.)
 
-- [ ] **Step 4: Página**
+- [x] **Step 4: Página**
 
 Create `app/(dashboard)/restaurantes/page.tsx`:
 
@@ -1961,7 +1974,7 @@ npm run dev
 2. Click "Nuevo restaurante", llenar nombre "Sucursal Centro", crear. Expected: el diálogo se cierra y la tabla muestra las dos filas sin recargar la página.
 3. Login como `dueno@test.local`, ir a `/restaurantes`. Expected: se ven ambos restaurantes, sin botón "Nuevo restaurante".
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add "app/(dashboard)/restaurantes"
@@ -1975,7 +1988,7 @@ git commit -m "Agregar lista y creacion de restaurantes"
 **Files:**
 - Create: `app/(dashboard)/egresos/page.tsx`
 
-- [ ] **Step 1: Página placeholder**
+- [x] **Step 1: Página placeholder**
 
 Create `app/(dashboard)/egresos/page.tsx`:
 
@@ -2001,7 +2014,7 @@ npm run dev
 
 Login como `egresos@test.local`. Expected: redirige a `/egresos`, se ve el mensaje placeholder, sin errores en consola.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add "app/(dashboard)/egresos"
@@ -2014,7 +2027,7 @@ git commit -m "Agregar placeholder de egresos"
 
 Sin código nuevo — recorrido completo de todos los flujos con los 5 roles, para atrapar cualquier interacción entre tareas que no se haya visto en el QA incremental de cada una.
 
-- [ ] **Step 1: Verificación estática final**
+- [x] **Step 1: Verificación estática final**
 
 ```bash
 npm run typecheck
@@ -2060,7 +2073,7 @@ Casos de sesión:
 2. Con sesión, ir a `/login` directamente — redirige a `/` (y de ahí a la pantalla del rol).
 3. Cerrar sesión desde cualquier pantalla — redirige a `/login` y las rutas protegidas vuelven a redirigir ahí.
 
-- [ ] **Step 6: Registrar hallazgos y cerrar**
+- [x] **Step 6: Registrar hallazgos y cerrar**
 
 Si algún paso falla, arreglarlo en el archivo correspondiente (no crear una tarea nueva para bugs de tareas anteriores — se corrigen en línea) y volver a correr el paso. Cuando todo el recorrido pase:
 
