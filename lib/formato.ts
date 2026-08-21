@@ -12,16 +12,15 @@ const ENTERO = new Intl.NumberFormat('es-MX');
 /** Centavos → "$12,345" */
 export const pesos = (centavos: number) => MXN.format(Math.round(centavos / 100));
 
-/** Centavos → "$12,345.67" (para capturas donde importan los centavos) */
+/** Centavos → "$12,345.67" para capturas donde importan los centavos */
 export const pesosExactos = (centavos: number) =>
-  new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN' }).format(centavos / 100);
+  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(centavos / 100);
 
 export const entero = (n: number) => ENTERO.format(Math.round(n));
 
 /** "1234.56" escrito por una persona → 123456 centavos */
 export const aCentavos = (texto: string) => {
-  const limpio = texto.replace(/[^0-9.]/g, '');
-  const n = parseFloat(limpio);
+  const n = parseFloat(texto.replace(/[^0-9.]/g, ''));
   return isNaN(n) ? 0 : Math.round(n * 100);
 };
 
@@ -35,19 +34,25 @@ export const fechaLarga = (iso: string) => {
 export const fechaCorta = (iso: string) =>
   new Date(iso + 'T12:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
 
-export const TEXTO_ESTADO: Record<string, string> = {
-  sano: 'Va bien', alarma: 'Hay que vigilar', critico: 'Atender hoy', off: 'Sin datos',
-};
-
 export const TEXTO_CORTE: Record<string, string> = {
   preliminar: 'Por validar', en_proceso: 'En revisión',
   validado: 'Validado', cancelado: 'Cancelado',
 };
 
-export const COLOR_CORTE: Record<string, string> = {
-  preliminar: 'alarma', en_proceso: 'alarma', validado: 'sano', cancelado: 'off',
+export const COLOR_CORTE: Record<string, 'sano' | 'alarma' | 'critico' | 'off'> = {
+  preliminar: 'alarma', en_proceso: 'alarma',
+  validado: 'sano', cancelado: 'off',
 };
 
 export const TEXTO_TURNO: Record<string, string> = {
   matutino: 'Turno matutino', vespertino: 'Turno vespertino',
+};
+
+/* Compatibilidad con components/Estado.tsx del prototipo.
+   Se puede eliminar cuando app/prototipo/ desaparezca. */
+export const TEXTO_ESTADO: Record<string, string> = {
+  sano: 'Va bien',
+  alarma: 'Hay que vigilar',
+  critico: 'Atender hoy',
+  off: 'Sin datos',
 };

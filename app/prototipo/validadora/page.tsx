@@ -5,7 +5,7 @@ import Shell from '@/components/Shell';
 import Mono from '@/components/Mono';
 import Icono from '@/components/Icono';
 import Estado from '@/components/Estado';
-import { getCortes, nombreRestaurante, HOY, type EstadoCorte } from '@/lib/mock';
+import { getCortes, nombreRestaurante, HOY } from '@/lib/mock';
 import { pesos, fechaLarga, TEXTO_CORTE, COLOR_CORTE, TEXTO_TURNO } from '@/lib/formato';
 
 /* ══════════════════════════════════════════════════════════════════════

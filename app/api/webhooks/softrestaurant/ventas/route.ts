@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
   // Catálogo de equivalencia forma de pago -> efectivo/tarjeta/otro
   const { data: formaPagoMap } = await supabase.from('sr_forma_pago_map').select('*');
-  const mapByLabel = new Map((formaPagoMap ?? []).map((m: any) => [m.forma_pago_sr, m.tipo]));
+  const mapByLabel = new Map((formaPagoMap ?? []).map((m) => [m.forma_pago_sr, m.tipo]));
 
   let lastTransactionId: string | null = null;
 
@@ -74,7 +74,8 @@ export async function POST(req: Request) {
     // Reemplaza los pagos de esta venta (idempotente ante reenvíos de SR)
     await supabase.from('sr_pagos').delete().eq('venta_id', insertedVenta.id);
 
-    const pagosRows = (venta.Pagos ?? []).map((pago: any) => ({
+    const pagos: { FormaPago: string; Importe: number; Propina?: number }[] = venta.Pagos ?? [];
+    const pagosRows = pagos.map((pago) => ({
       venta_id: insertedVenta.id,
       forma_pago_sr: pago.FormaPago,
       tipo: mapByLabel.get(pago.FormaPago) ?? 'otro',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ROLES, LISTA_ROLES, ROL_POR_DEFECTO, type Rol } from '@/lib/roles';
@@ -20,35 +20,58 @@ const MODOS = [
   { id:'noche',  n:'Noche'  },
 ];
 
+/* Pequeno almacen sobre localStorage para poder leerlo con
+   useSyncExternalStore: getSnapshot en el cliente, valor por defecto en el
+   servidor, y notificacion a los suscriptores al escribir. */
+function crearAlmacen(clave: string, porDefecto: string) {
+  const oyentes = new Set<() => void>();
+  return {
+    suscribir(cb: () => void) {
+      oyentes.add(cb);
+      window.addEventListener('storage', cb);
+      return () => { oyentes.delete(cb); window.removeEventListener('storage', cb); };
+    },
+    leer: () => localStorage.getItem(clave) ?? porDefecto,
+    leerEnServidor: () => porDefecto,
+    escribir(valor: string) {
+      localStorage.setItem(clave, valor);
+      oyentes.forEach(cb => cb());
+    },
+  };
+}
+
+const ALMACEN_ROL = crearAlmacen('rol', ROL_POR_DEFECTO);
+const ALMACEN_MODO = crearAlmacen('modo', 'oscuro');
+
 export default function Shell({ children, titulo, subtitulo }:
   { children: React.ReactNode; titulo: string; subtitulo?: string }) {
 
-  const [rol, setRol] = useState<Rol>(ROL_POR_DEFECTO);
   const [abierto, setAbierto] = useState(false);
-  const [modo, setModo] = useState('oscuro');
   const ruta = usePathname();
   const router = useRouter();
 
-  /* El rol se recuerda entre recargas mientras no exista el login real. */
-  useEffect(() => {
-    const g = localStorage.getItem('rol') as Rol | null;
-    if (g && ROLES[g]) setRol(g);
-    const m = localStorage.getItem('modo');
-    if (m) { setModo(m); document.documentElement.dataset.modo = m; }
-  }, []);
+  /* El rol y el modo se recuerdan entre recargas mientras no exista el login
+     real. localStorage es la fuente de verdad y se lee con
+     useSyncExternalStore: hidratar con setState dentro de un useEffect
+     dispara renders en cascada (react-hooks/set-state-in-effect). */
+  const rolGuardado = useSyncExternalStore(
+    ALMACEN_ROL.suscribir, ALMACEN_ROL.leer, ALMACEN_ROL.leerEnServidor);
+  const modo = useSyncExternalStore(
+    ALMACEN_MODO.suscribir, ALMACEN_MODO.leer, ALMACEN_MODO.leerEnServidor);
+
+  const rol = (ROLES[rolGuardado as Rol] ? rolGuardado : ROL_POR_DEFECTO) as Rol;
+
+  /* Sincroniza el modo con el DOM (sistema externo, no es estado de React). */
+  useEffect(() => { document.documentElement.dataset.modo = modo; }, [modo]);
 
   const cambiarRol = (nuevo: Rol) => {
-    setRol(nuevo);
-    localStorage.setItem('rol', nuevo);
+    ALMACEN_ROL.escribir(nuevo);
     router.push(ROLES[nuevo].inicio);
   };
 
   const cambiarModo = () => {
     const i = MODOS.findIndex(m => m.id === modo);
-    const sig = MODOS[(i + 1) % MODOS.length].id;
-    setModo(sig);
-    localStorage.setItem('modo', sig);
-    document.documentElement.dataset.modo = sig;
+    ALMACEN_MODO.escribir(MODOS[(i + 1) % MODOS.length].id);
   };
 
   const perfil = ROLES[rol];

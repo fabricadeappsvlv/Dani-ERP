@@ -6,6 +6,17 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  {
+    rules: {
+      // Las Server Actions usadas con useActionState reciben (prevState, formData)
+      // aunque no siempre las usen — el prefijo _ marca el parámetro como
+      // intencionalmente sin usar.
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

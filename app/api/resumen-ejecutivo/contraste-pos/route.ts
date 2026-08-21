@@ -66,7 +66,7 @@ export async function GET(req: Request) {
 
   for (const v of ventas ?? []) {
     const b = getBucket(v.business_date);
-    for (const pago of (v as any).sr_pagos ?? []) {
+    for (const pago of v.sr_pagos ?? []) {
       if (pago.tipo === 'efectivo') b.posEfectivo += pago.importe_centavos;
       else if (pago.tipo === 'tarjeta') b.posTarjeta += pago.importe_centavos;
     }
